@@ -200,25 +200,62 @@ def cultivate():
     current_user.cultivation_points += base_gain // 10
     current_user.last_cultivation = datetime.utcnow()
     
-    # Check for level up
-    current_stage = current_user.get_cultivation_stage()
-    stage_info = cultivation_ai.cultivation_stages.get(current_stage)
+    # Check for level up using detailed stage system
+    current_level = current_user.cultivation_level
+    stage_info = cultivation_ai.cultivation_stages.get(current_level)
     
     if stage_info and current_user.spiritual_power >= stage_info["max_power"]:
-        # Level up logic
-        next_stages = list(cultivation_ai.cultivation_stages.keys())
-        current_index = next_stages.index(current_stage)
-        if current_index < len(next_stages) - 1:
-            new_stage = next_stages[current_index + 1]
-            current_user.cultivation_level = f"{new_stage} Tầng 1"
+        # Determine next level
+        current_stage = current_user.get_cultivation_stage()
+        current_substage = current_user.get_cultivation_substage()
+        
+        new_level = None
+        achievement_type = "common"
+        
+        if "Viên Mãn" in current_level:
+            # Advance to next major stage
+            major_stages = ["Luyện Khí", "Trúc Cơ", "Kết Đan", "Nguyên Anh", "Hóa Thần",
+                           "Luyện Hư", "Hợp Thể", "Đại Thừa", "Độ Kiếp", "Tản Tiên"]
+            try:
+                current_major_index = major_stages.index(current_stage)
+                if current_major_index < len(major_stages) - 1:
+                    next_major_stage = major_stages[current_major_index + 1]
+                    new_level = f"{next_major_stage} Tầng 1"
+                    achievement_type = "legendary"
+            except ValueError:
+                pass
+        elif "Tầng" in current_level:
+            # Advance within current major stage
+            for i in range(1, 9):
+                if f"Tầng {i}" in current_level:
+                    if i < 9:
+                        new_level = current_level.replace(f"Tầng {i}", f"Tầng {i+1}")
+                    else:
+                        new_level = current_level.replace(f"Tầng {i}", "Viên Mãn")
+                        achievement_type = "rare"
+                    break
+        
+        if new_level and new_level in cultivation_ai.cultivation_stages:
+            old_level = current_user.cultivation_level
+            current_user.cultivation_level = new_level
             
             # Add achievement
+            if achievement_type == "legendary":
+                title = f"Đại Đột Phá {current_stage}"
+                description = f"Viên mãn {current_stage}, đột phá lên {current_user.get_cultivation_stage()}"
+            elif achievement_type == "rare":
+                title = f"Viên Mãn {current_stage}"
+                description = f"Đạt tới viên mãn cảnh giới {current_stage}"
+            else:
+                title = f"Tiến Bộ {current_stage}"
+                description = f"Từ {old_level} lên {new_level}"
+            
             achievement = Achievement(
                 user_id=current_user.id,
-                title=f"Đột Phá {new_stage}",
-                description=f"Thành công đột phá lên cảnh giới {new_stage}",
+                title=title,
+                description=description,
                 category="cultivation",
-                rarity="rare" if current_index > 5 else "common"
+                rarity=achievement_type
             )
             db.session.add(achievement)
     
@@ -234,16 +271,18 @@ def cultivate():
 @app.route('/api/mine-stones', methods=['POST'])
 @login_required
 def mine_stones():
-    # Check if user can mine (every 2 hours)
-    if current_user.last_mining:
-        time_diff = datetime.utcnow() - current_user.last_mining
-        if time_diff.total_seconds() < 7200:  # 2 hours cooldown
-            remaining = 7200 - time_diff.total_seconds()
-            return jsonify({
-                'success': False, 
-                'error': f'Còn {int(remaining//60)} phút nữa mới có thể đào tiếp!',
-                'cooldown': remaining
-            })
+    # Admin users can mine without cooldown
+    if not current_user.is_admin:
+        # Check if user can mine (every 2 hours)
+        if current_user.last_mining:
+            time_diff = datetime.utcnow() - current_user.last_mining
+            if time_diff.total_seconds() < 7200:  # 2 hours cooldown
+                remaining = 7200 - time_diff.total_seconds()
+                return jsonify({
+                    'success': False, 
+                    'error': f'Còn {int(remaining//60)} phút nữa mới có thể đào tiếp!',
+                    'cooldown': remaining
+                })
     
     # Calculate mining yield based on level
     base_yield = 50 + (current_user.mining_level * 25)
@@ -511,9 +550,9 @@ def create_guild():
     if Guild.query.filter_by(name=name).first():
         return jsonify({'success': False, 'error': 'Tên bang hội đã tồn tại!'})
     
-    # Check cost
+    # Check cost (admin users get free guild creation)
     guild_cost = 10000  # spiritual stones
-    if current_user.spiritual_stones < guild_cost:
+    if not current_user.is_admin and current_user.spiritual_stones < guild_cost:
         return jsonify({'success': False, 'error': f'Cần {guild_cost} linh thạch để tạo bang hội!'})
     
     guild = Guild(
@@ -522,7 +561,9 @@ def create_guild():
         leader_id=current_user.id
     )
     
-    current_user.spiritual_stones -= guild_cost
+    # Admin users don't pay the cost
+    if not current_user.is_admin:
+        current_user.spiritual_stones -= guild_cost
     
     try:
         db.session.add(guild)
@@ -556,9 +597,9 @@ def create_expedition():
     if not destination:
         return jsonify({'success': False, 'error': 'Điểm đến không được để trống!'})
     
-    # Check cost
+    # Check cost (admin users get free expedition creation)
     expedition_cost = 5000  # spiritual stones
-    if current_user.spiritual_stones < expedition_cost:
+    if not current_user.is_admin and current_user.spiritual_stones < expedition_cost:
         return jsonify({'success': False, 'error': f'Cần {expedition_cost} linh thạch để tạo đạo lữ!'})
     
     expedition = Expedition(
@@ -574,7 +615,9 @@ def create_expedition():
         organizer_guild_id=current_user.guild_id
     )
     
-    current_user.spiritual_stones -= expedition_cost
+    # Admin users don't pay the cost
+    if not current_user.is_admin:
+        current_user.spiritual_stones -= expedition_cost
     
     try:
         # Validate integer fields before database insert

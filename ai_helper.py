@@ -4,18 +4,62 @@ from datetime import datetime, timedelta
 
 class CultivationAI:
     def __init__(self):
-        self.cultivation_stages = {
-            "Luyện Khí": {"min_power": 0, "max_power": 1000},
-            "Trúc Cơ": {"min_power": 1000, "max_power": 5000},
-            "Kết Đan": {"min_power": 5000, "max_power": 20000},
-            "Nguyên Anh": {"min_power": 20000, "max_power": 100000},
-            "Hóa Thần": {"min_power": 100000, "max_power": 500000},
-            "Luyện Hư": {"min_power": 500000, "max_power": 2000000},
-            "Hợp Thể": {"min_power": 2000000, "max_power": 10000000},
-            "Đại Thừa": {"min_power": 10000000, "max_power": 50000000},
-            "Độ Kiếp": {"min_power": 50000000, "max_power": 200000000},
-            "Tản Tiên": {"min_power": 200000000, "max_power": 1000000000}
+        # Hệ thống cảnh giới chi tiết với 9 tầng + viên mãn cho mỗi cấp
+        self.cultivation_stages = self._build_detailed_stages()
+        
+        # Cảnh giới chính và ngưỡng tổng quát
+        self.major_stages = {
+            "Luyện Khí": {"min_power": 0, "max_power": 10000},
+            "Trúc Cơ": {"min_power": 10000, "max_power": 50000},
+            "Kết Đan": {"min_power": 50000, "max_power": 200000},
+            "Nguyên Anh": {"min_power": 200000, "max_power": 1000000},
+            "Hóa Thần": {"min_power": 1000000, "max_power": 5000000},
+            "Luyện Hư": {"min_power": 5000000, "max_power": 20000000},
+            "Hợp Thể": {"min_power": 20000000, "max_power": 100000000},
+            "Đại Thừa": {"min_power": 100000000, "max_power": 500000000},
+            "Độ Kiếp": {"min_power": 500000000, "max_power": 2000000000},
+            "Tản Tiên": {"min_power": 2000000000, "max_power": 10000000000}
         }
+    
+    def _build_detailed_stages(self):
+        """Xây dựng hệ thống tầng chi tiết"""
+        stages = {}
+        major_stages = [
+            ("Luyện Khí", 0, 10000),
+            ("Trúc Cơ", 10000, 50000),
+            ("Kết Đan", 50000, 200000),
+            ("Nguyên Anh", 200000, 1000000),
+            ("Hóa Thần", 1000000, 5000000),
+            ("Luyện Hư", 5000000, 20000000),
+            ("Hợp Thể", 20000000, 100000000),
+            ("Đại Thừa", 100000000, 500000000),
+            ("Độ Kiếp", 500000000, 2000000000),
+            ("Tản Tiên", 2000000000, 10000000000)
+        ]
+        
+        for stage_name, min_power, max_power in major_stages:
+            power_range = max_power - min_power
+            # Chia thành 10 phần: 9 tầng + viên mãn
+            step = power_range // 10
+            
+            # 9 tầng đầu
+            for i in range(1, 10):
+                substage_min = min_power + (i - 1) * step
+                substage_max = min_power + i * step
+                stages[f"{stage_name} Tầng {i}"] = {
+                    "min_power": substage_min,
+                    "max_power": substage_max,
+                    "major_stage": stage_name
+                }
+            
+            # Tầng viên mãn
+            stages[f"{stage_name} Viên Mãn"] = {
+                "min_power": min_power + 9 * step,
+                "max_power": max_power,
+                "major_stage": stage_name
+            }
+        
+        return stages
         
         self.weather_conditions = [
             "Linh Khí Dồi Dào - Tu luyện tăng 20%",
@@ -52,8 +96,12 @@ class CultivationAI:
         """Đưa ra lời khuyên tu luyện thông minh"""
         advice = []
         
-        current_stage = user.get_cultivation_stage()
-        stage_info = self.cultivation_stages.get(current_stage, self.cultivation_stages["Luyện Khí"])
+        current_level = user.cultivation_level
+        stage_info = self.cultivation_stages.get(current_level)
+        
+        if not stage_info:
+            # Fallback to first stage if not found
+            stage_info = self.cultivation_stages.get("Luyện Khí Tầng 1")
         
         # Phân tích tiến độ
         power_range = stage_info["max_power"] - stage_info["min_power"]

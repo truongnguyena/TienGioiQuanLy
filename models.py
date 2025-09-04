@@ -34,6 +34,9 @@ class User(UserMixin, db.Model):
     # Free benefits
     free_world_opening_used = db.Column(db.Boolean, default=False)
     
+    # Admin privileges
+    is_admin = db.Column(db.Boolean, default=False)
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_cultivation = db.Column(db.DateTime, default=datetime.utcnow)
@@ -58,6 +61,17 @@ class User(UserMixin, db.Model):
             if stage in self.cultivation_level:
                 return stage
         return "Luyện Khí"
+    
+    def get_cultivation_substage(self):
+        """Lấy tầng chi tiết (1-9 hoặc Viên Mãn)"""
+        level = self.cultivation_level
+        if "Viên Mãn" in level:
+            return "Viên Mãn"
+        # Tìm tầng số (1-9)
+        for i in range(1, 10):
+            if f"Tầng {i}" in level:
+                return f"Tầng {i}"
+        return "Tầng 1"
 
 class Guild(db.Model):
     id = db.Column(db.Integer, primary_key=True)
