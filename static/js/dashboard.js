@@ -15,6 +15,25 @@ class Dashboard {
         this.startDashboardUpdates();
     }
 
+    showLoading(element) {
+        if (window.enhancedUI) {
+            window.enhancedUI.showLoading(element);
+        } else {
+            element.classList.add('loading');
+        }
+    }
+
+    hideLoading(element, originalText) {
+        if (window.enhancedUI) {
+            window.enhancedUI.hideLoading(element);
+        } else {
+            element.classList.remove('loading');
+        }
+        if (originalText) {
+            element.innerHTML = originalText;
+        }
+    }
+
     setupCultivationSystem() {
         // Auto-cultivation toggle
         const autoCultivateToggle = document.getElementById('autoCultivate');
@@ -22,8 +41,14 @@ class Dashboard {
             autoCultivateToggle.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     this.startAutoCultivation();
+                    if (window.enhancedUI) {
+                        window.enhancedUI.showNotification('Tự động tu luyện đã bật', 'info');
+                    }
                 } else {
                     this.stopAutoCultivation();
+                    if (window.enhancedUI) {
+                        window.enhancedUI.showNotification('Tự động tu luyện đã tắt', 'info');
+                    }
                 }
             });
         }
@@ -36,8 +61,12 @@ class Dashboard {
         const cultivateBtn = document.querySelector('[onclick="cultivate()"]');
         if (!cultivateBtn) return;
 
+        // Prevent multiple clicks
+        if (cultivateBtn.disabled) return;
+        cultivateBtn.disabled = true;
+
         const originalText = cultivateBtn.innerHTML;
-        showLoading(cultivateBtn);
+        this.showLoading(cultivateBtn);
 
         try {
             const response = await fetch('/api/cultivate', {
@@ -47,6 +76,10 @@ class Dashboard {
                     'X-Requested-With': 'XMLHttpRequest'
                 }
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             const data = await response.json();
 
@@ -63,11 +96,18 @@ class Dashboard {
                 }
 
                 // Show success notification
-                window.tuTienApp.showNotification(
-                    'Tu Luyện Thành Công!', 
-                    `Tăng ${data.power_gained} điểm linh lực`, 
-                    'cultivation'
-                );
+                if (window.enhancedUI) {
+                    window.enhancedUI.showNotification(
+                        `Tu Luyện Thành Công! Tăng ${data.power_gained} điểm linh lực`, 
+                        'success'
+                    );
+                } else if (window.tuTienApp) {
+                    window.tuTienApp.showNotification(
+                        'Tu Luyện Thành Công!', 
+                        `Tăng ${data.power_gained} điểm linh lực`, 
+                        'cultivation'
+                    );
+                }
 
                 // Check for breakthrough
                 this.checkBreakthrough(data);
@@ -76,9 +116,14 @@ class Dashboard {
             }
         } catch (error) {
             console.error('Cultivation error:', error);
-            window.tuTienApp.showNotification('Lỗi Tu Luyện', error.message, 'error');
+            if (window.enhancedUI) {
+                window.enhancedUI.showNotification('Lỗi Tu Luyện: ' + error.message, 'error');
+            } else if (window.tuTienApp) {
+                window.tuTienApp.showNotification('Lỗi Tu Luyện', error.message, 'error');
+            }
         } finally {
-            hideLoading(cultivateBtn, originalText);
+            this.hideLoading(cultivateBtn, originalText);
+            cultivateBtn.disabled = false;
         }
     }
 
@@ -215,11 +260,28 @@ class Dashboard {
     }
 
     startAutoCultivation() {
+        // Clear any existing timer
+        this.stopAutoCultivation();
+        
         this.cultivationTimer = setInterval(() => {
-            this.cultivate();
-        }, 60000); // Auto cultivate every minute
+            // Check if user is still on dashboard
+            if (window.location.pathname === '/dashboard') {
+                this.cultivate();
+            }
+        }, 30000); // Auto cultivate every 30 seconds
 
-        window.tuTienApp.showNotification('Tự Động Tu Luyện', 'Đã bật chế độ tự động tu luyện', 'info');
+        // Update UI to show auto-cultivation is active
+        const autoCultivateToggle = document.getElementById('autoCultivate');
+        if (autoCultivateToggle) {
+            autoCultivateToggle.checked = true;
+        }
+
+        // Show notification
+        if (window.enhancedUI) {
+            window.enhancedUI.showNotification('Tự động tu luyện đã bật (mỗi 30 giây)', 'info');
+        } else if (window.tuTienApp) {
+            window.tuTienApp.showNotification('Tự Động Tu Luyện', 'Đã bật chế độ tự động tu luyện', 'info');
+        }
     }
 
     stopAutoCultivation() {
@@ -227,7 +289,19 @@ class Dashboard {
             clearInterval(this.cultivationTimer);
             this.cultivationTimer = null;
         }
-        window.tuTienApp.showNotification('Tự Động Tu Luyện', 'Đã tắt chế độ tự động tu luyện', 'info');
+
+        // Update UI to show auto-cultivation is inactive
+        const autoCultivateToggle = document.getElementById('autoCultivate');
+        if (autoCultivateToggle) {
+            autoCultivateToggle.checked = false;
+        }
+
+        // Show notification
+        if (window.enhancedUI) {
+            window.enhancedUI.showNotification('Tự động tu luyện đã tắt', 'info');
+        } else if (window.tuTienApp) {
+            window.tuTienApp.showNotification('Tự Động Tu Luyện', 'Đã tắt chế độ tự động tu luyện', 'info');
+        }
     }
 
     animateCultivationProgress() {
