@@ -19,7 +19,7 @@ app.secret_key = os.environ.get("SESSION_SECRET", "tu_tien_secret_key_2025")
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
 # Configure the database
-database_url = os.environ.get("DATABASE_URL", "sqlite:///tu_tien.db")
+database_url = os.environ.get("DATABASE_URL") or "sqlite:///tu_tien.db"
 app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 # Configure engine options based on database type
@@ -39,7 +39,7 @@ else:
 db.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
-login_manager.login_view = 'auth'
+login_manager.login_view = 'auth'  # type: ignore
 
 with app.app_context():
     import models
