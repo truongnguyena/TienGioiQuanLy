@@ -344,11 +344,17 @@ class ExpeditionManager {
     }
 
     async generateAIRoute() {
-        const difficultyLevel = document.querySelector('input[name="difficulty_level"]')?.value || 3;
+        const difficultyInput = document.querySelector('input[name="difficulty_level"]')?.value || 3;
+        const difficultyLevel = Math.max(1, Math.min(5, parseInt(difficultyInput) || 3));
         const destination = document.querySelector('select[name="destination"]')?.value || 'Rừng Tre Xanh';
         
         const routeContainer = document.getElementById('generated-route');
         const routeInfo = routeContainer.querySelector('.route-info');
+        
+        if (!routeContainer || !routeInfo) {
+            console.warn('Route container elements not found');
+            return;
+        }
         
         routeContainer.style.display = 'block';
         routeInfo.innerHTML = '<div class="loading-spinner"></div><p class="text-light mt-2">AI đang tạo lộ trình...</p>';
@@ -357,7 +363,7 @@ class ExpeditionManager {
             // Simulate AI route generation
             await new Promise(resolve => setTimeout(resolve, 2000));
 
-            const route = this.generateRouteData(parseInt(difficultyLevel), destination);
+            const route = this.generateRouteData(difficultyLevel, destination);
             
             routeInfo.innerHTML = `
                 <h6 class="text-golden mb-3">
@@ -661,9 +667,15 @@ class ExpeditionManager {
     }
 
     calculateExpeditionCost() {
-        const difficulty = parseInt(document.querySelector('input[name="difficulty_level"]')?.value) || 1;
-        const duration = parseInt(document.querySelector('input[name="duration_hours"]')?.value) || 24;
-        const participants = parseInt(document.querySelector('input[name="max_participants"]')?.value) || 5;
+        const difficulty = Math.max(1, Math.min(5, parseInt(document.querySelector('input[name="difficulty_level"]')?.value) || 1));
+        const duration = Math.max(1, Math.min(168, parseInt(document.querySelector('input[name="duration_hours"]')?.value) || 24));
+        const participants = Math.max(1, Math.min(10, parseInt(document.querySelector('input[name="max_participants"]')?.value) || 5));
+        
+        // Validate numbers to prevent NaN calculations
+        if (isNaN(difficulty) || isNaN(duration) || isNaN(participants)) {
+            console.warn('Invalid input values for expedition cost calculation');
+            return;
+        }
         
         const baseCost = difficulty * 1000;
         const durationMultiplier = Math.ceil(duration / 24);

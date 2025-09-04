@@ -189,8 +189,13 @@ def profile():
 @app.route('/api/cultivate', methods=['POST'])
 @login_required
 def cultivate():
-    # Simple cultivation system
+    # Simple cultivation system with bounds checking
     base_gain = random.randint(50, 200)
+    
+    # Prevent integer overflow
+    if current_user.spiritual_power > 999999999 - base_gain:
+        base_gain = min(base_gain, 999999999 - current_user.spiritual_power)
+    
     current_user.spiritual_power += base_gain
     current_user.cultivation_points += base_gain // 10
     current_user.last_cultivation = datetime.utcnow()
@@ -560,9 +565,9 @@ def create_expedition():
         name=name,
         destination=destination,
         description=description,
-        difficulty_level=data.get('difficulty_level', 1),
-        max_participants=data.get('max_participants', 5),
-        duration_hours=data.get('duration_hours', 24),
+        difficulty_level=max(1, min(5, int(data.get('difficulty_level', 1)))),
+        max_participants=max(1, min(10, int(data.get('max_participants', 5)))),
+        duration_hours=max(1, min(168, int(data.get('duration_hours', 24)))),
         min_cultivation=data.get('min_cultivation'),
         required_items=data.get('required_items'),
         potential_rewards=data.get('potential_rewards'),
@@ -572,10 +577,17 @@ def create_expedition():
     current_user.spiritual_stones -= expedition_cost
     
     try:
+        # Validate integer fields before database insert
+        if not isinstance(expedition.difficulty_level, int) or not isinstance(expedition.max_participants, int):
+            return jsonify({'success': False, 'error': 'Dữ liệu số không hợp lệ!'})
+            
         db.session.add(expedition)
         db.session.commit()
         
         return jsonify({'success': True, 'message': 'Tạo đạo lữ thành công!'})
+    except (ValueError, TypeError) as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Dữ liệu đầu vào không hợp lệ!'})
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Lỗi khi tạo đạo lữ. Vui lòng thử lại!'})

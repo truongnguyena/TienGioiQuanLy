@@ -56,7 +56,11 @@ class CultivationAI:
         stage_info = self.cultivation_stages.get(current_stage, self.cultivation_stages["Luyện Khí"])
         
         # Phân tích tiến độ
-        progress = (user.spiritual_power - stage_info["min_power"]) / (stage_info["max_power"] - stage_info["min_power"])
+        power_range = stage_info["max_power"] - stage_info["min_power"]
+        if power_range > 0:
+            progress = (user.spiritual_power - stage_info["min_power"]) / power_range
+        else:
+            progress = 1.0  # Max progress if no range
         
         if progress < 0.3:
             advice.append("Nên tập trung tu luyện cơ bản để tăng nền tảng.")
@@ -81,8 +85,8 @@ class CultivationAI:
     def calculate_guild_war_prediction(self, guild1, guild2):
         """Dự đoán kết quả chiến tranh bang hội"""
         # Tính sức mạnh tổng hợp
-        guild1_power = guild1.level * 1000 + guild1.treasury + guild1.territory_count * 500
-        guild2_power = guild2.level * 1000 + guild2.treasury + guild2.territory_count * 500
+        guild1_power = (guild1.level or 1) * 1000 + (guild1.treasury or 0) + (guild1.territory_count or 1) * 500
+        guild2_power = (guild2.level or 1) * 1000 + (guild2.treasury or 0) + (guild2.territory_count or 1) * 500
         
         # Thêm yếu tố ngẫu nhiên
         guild1_power *= random.uniform(0.8, 1.2)
