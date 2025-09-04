@@ -282,7 +282,7 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-                <form method="POST" action="{{ url_for('world_management') }}">
+                <form id="createWorldForm" method="POST">
                     <input type="hidden" name="action" value="create_world">
                     
                     <div class="row">
@@ -341,7 +341,8 @@
             </div>
             <div class="modal-footer border-top border-secondary">
                 <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
-                <button type="submit" form="createWorldForm" class="btn btn-golden mystical-btn">Tạo Thế Giới</button>
+                <button type="button" class="btn btn-golden mystical-btn" onclick="createWorldFree()">Tạo Thế Giới Miễn Phí</button>
+                <button type="submit" form="createWorldForm" class="btn btn-purple mystical-btn">Tạo Thế Giới (50,000 Linh Thạch)</button>
             </div>
         </div>
     </div>
@@ -450,6 +451,62 @@ function joinContest(worldId) {
         // Implementation for joining world contests
         alert('Tính năng tranh chấp thế giới sẽ được phát triển!');
     }
+}
+
+function createWorldFree() {
+    const form = document.getElementById('createWorldForm');
+    const formData = new FormData(form);
+    
+    const worldData = {
+        name: formData.get('world_name'),
+        world_type: formData.get('world_type'),
+        description: formData.get('description')
+    };
+    
+    if (!worldData.name || worldData.name.length < 3) {
+        alert('Tên thế giới phải có ít nhất 3 ký tự!');
+        return;
+    }
+    
+    if (!worldData.world_type) {
+        alert('Vui lòng chọn loại thế giới!');
+        return;
+    }
+    
+    // Show loading
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang tạo...';
+    button.disabled = true;
+    
+    fetch('/api/create-world-free', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(worldData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Đã tạo thế giới "' + data.world.name + '" thành công!');
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createWorldModal'));
+            modal.hide();
+            // Reload page to show new world
+            location.reload();
+        } else {
+            alert('Lỗi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi tạo thế giới!');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
 }
 </script>
 {% endblock %}
