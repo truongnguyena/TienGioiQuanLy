@@ -16,7 +16,7 @@ def init_production_database():
             db.create_all()
             
             print("Creating database indexes...")
-            DatabaseOptimizer.optimize_user_queries()
+            DatabaseOptimizer.optimize_user_queries(db)
             
             print("Creating sample data...")
             

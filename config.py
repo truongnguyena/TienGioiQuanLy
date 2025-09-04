@@ -18,6 +18,7 @@ class Config:
     SQLALCHEMY_ENGINE_OPTIONS = {
         'pool_recycle': 300,
         'pool_pre_ping': True,
+        'connect_args': {"check_same_thread": False} if not os.environ.get('DATABASE_URL', '').startswith('postgresql') else {}
     }
 
 class DevelopmentConfig(Config):
@@ -35,6 +36,12 @@ class ProductionConfig(Config):
             'pool_pre_ping': True,
             'pool_size': 10,
             'max_overflow': 20
+        }
+    else:
+        SQLALCHEMY_ENGINE_OPTIONS = {
+            'pool_recycle': 300,
+            'pool_pre_ping': True,
+            'connect_args': {"check_same_thread": False}
         }
 
 config = {

@@ -27,9 +27,9 @@ except Exception as e:
 @cache.cached(timeout=300)  # Cache for 5 minutes
 def index():
     # Get optimized statistics using DatabaseOptimizer
-    user_stats = DatabaseOptimizer.get_user_stats()
-    guild_stats = DatabaseOptimizer.get_guild_stats()
-    world_stats = DatabaseOptimizer.get_world_stats()
+    user_stats = DatabaseOptimizer.get_user_stats(db, cache)
+    guild_stats = DatabaseOptimizer.get_guild_stats(db, cache)
+    world_stats = DatabaseOptimizer.get_world_stats(db, cache)
     
     stats = {
         'total_users': user_stats['total_users'],
@@ -39,7 +39,7 @@ def index():
     }
 
     # Get recent achievements with caching
-    recent_achievements = DatabaseOptimizer.get_recent_achievements(5)
+    recent_achievements = DatabaseOptimizer.get_recent_achievements(db, cache, 5)
 
     return render_template('index.html', stats=stats, recent_achievements=recent_achievements)
 
