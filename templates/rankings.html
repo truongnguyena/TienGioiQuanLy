@@ -190,9 +190,9 @@
                                             </td>
                                             <td>
                                                 <div class="reputation-display">
-                                                    <span class="text-golden">{{ user.reputation }}</span>
+                                                    <span class="text-golden">{{ user.reputation or 0 }}</span>
                                                     <div class="reputation-stars">
-                                                        {% set star_count = (user.reputation // 1000) %}
+                                                        {% set star_count = ((user.reputation or 0) // 1000) %}
                                                         {% for i in range(5) %}
                                                             {% if i < star_count %}
                                                             <i class="fas fa-star text-warning"></i>
@@ -354,7 +354,7 @@
                                         </div>
 
                                         <p class="achievement-desc text-light mt-2">{{ achievement.description }}</p>
-                                        
+
                                         <div class="achievement-footer">
                                             <div class="d-flex justify-content-between align-items-center">
                                                 <span class="text-golden">{{ achievement.user.dao_name or achievement.user.username }}</span>
@@ -566,11 +566,11 @@
         margin-bottom: 1rem;
         padding: 1rem;
     }
-    
+
     .rank-icon {
         font-size: 2rem;
     }
-    
+
     .power-number {
         font-size: 1.2rem;
     }
@@ -583,13 +583,13 @@
 // Chart.js for Guild Statistics
 document.addEventListener('DOMContentLoaded', function() {
     const ctx = document.getElementById('guildStatsChart').getContext('2d');
-    
+
     // Prepare data from guild rankings
     const guildNames = [{% for guild in guild_rankings[:10] %}'{{ guild.name }}'{{ ',' if not loop.last }}{% endfor %}];
     const guildLevels = [{% for guild in guild_rankings[:10] %}{{ guild.level }}{{ ',' if not loop.last }}{% endfor %}];
     const guildMembers = [{% for guild in guild_rankings[:10] %}{{ guild.members|length }}{{ ',' if not loop.last }}{% endfor %}];
     const guildTerritories = [{% for guild in guild_rankings[:10] %}{{ guild.territory_count }}{{ ',' if not loop.last }}{% endfor %}];
-    
+
     new Chart(ctx, {
         type: 'bar',
         data: {
@@ -697,14 +697,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Animation for rank numbers
 document.addEventListener('DOMContentLoaded', function() {
     const rankNumbers = document.querySelectorAll('.power-number');
-    
+
     const animateNumbers = (entries, observer) => {
         entries.forEach(entry => {
             if (entry.isIntersecting) {
                 const target = parseInt(entry.target.textContent.replace(/,/g, ''));
                 let current = 0;
                 const increment = target / 50;
-                
+
                 const timer = setInterval(() => {
                     current += increment;
                     if (current >= target) {
@@ -714,12 +714,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         entry.target.textContent = Math.floor(current).toLocaleString();
                     }
                 }, 50);
-                
+
                 observer.unobserve(entry.target);
             }
         });
     };
-    
+
     const observer = new IntersectionObserver(animateNumbers);
     rankNumbers.forEach(number => observer.observe(number));
 });

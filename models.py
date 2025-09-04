@@ -18,8 +18,8 @@ class User(UserMixin, db.Model):
     # Profile info
     dao_name = db.Column(db.String(100))  # Đạo hiệu
     sect_affiliation = db.Column(db.String(100))
-    reputation = db.Column(db.Integer, default=0)
-    karma_points = db.Column(db.Integer, default=0)
+    reputation = db.Column(db.Integer, default=0, nullable=False)
+    karma_points = db.Column(db.Integer, default=0, nullable=False)
     
     # Resources
     spiritual_stones = db.Column(db.Integer, default=1000)
