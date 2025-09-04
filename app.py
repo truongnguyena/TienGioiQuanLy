@@ -5,8 +5,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from sqlalchemy.orm import DeclarativeBase
 from werkzeug.middleware.proxy_fix import ProxyFix
+from flask_caching import Cache
+from config import config
 
-logging.basicConfig(level=logging.DEBUG)
+# Configure logging based on environment
+if os.environ.get('FLASK_ENV') == 'production':
+    logging.basicConfig(level=logging.WARNING)
+else:
+    logging.basicConfig(level=logging.DEBUG)
 
 class Base(DeclarativeBase):
     pass
@@ -15,25 +21,16 @@ db = SQLAlchemy(model_class=Base)
 
 # Create the app
 app = Flask(__name__)
-app.secret_key = os.environ.get("SESSION_SECRET")
+
+# Load configuration
+config_name = os.environ.get('FLASK_ENV', 'default')
+app.config.from_object(config[config_name])
+
+# Apply proxy fix for production
 app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
 
-# Configure the database
-database_url = os.environ.get("DATABASE_URL") or "sqlite:///tu_tien.db"
-app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-
-# Configure engine options based on database type
-if database_url.startswith("postgresql"):
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,
-        "pool_pre_ping": True,
-    }
-else:
-    app.config["SQLALCHEMY_ENGINE_OPTIONS"] = {
-        "pool_recycle": 300,
-        "pool_pre_ping": True,
-        "connect_args": {"check_same_thread": False},
-    }
+# Configure caching
+cache = Cache(app)
 
 # Initialize extensions
 db.init_app(app)

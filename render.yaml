@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: tien-gioi-quan-ly
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: tien-gioi-db
+          property: connectionString
+    healthCheckPath: /
+    autoDeploy: true
+
+databases:
+  - name: tien-gioi-db
+    plan: free
+    databaseName: tien_gioi_quan_ly
+    user: tien_gioi_user

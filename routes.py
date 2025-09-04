@@ -6,8 +6,9 @@ from datetime import datetime, timedelta
 import json
 import random
 
-from app import app, db
+from app import app, db, cache
 from models import User, Guild, World, GuildWar, Expedition, ExpeditionParticipant, ChatMessage, Achievement
+from db_optimizer import DatabaseOptimizer
 from ai_helper import cultivation_ai
 
 # Import Perplexity AI helper
@@ -23,17 +24,22 @@ except Exception as e:
     PERPLEXITY_AVAILABLE = False
 
 @app.route('/')
+@cache.cached(timeout=300)  # Cache for 5 minutes
 def index():
-    # Get some statistics for the homepage
+    # Get optimized statistics using DatabaseOptimizer
+    user_stats = DatabaseOptimizer.get_user_stats()
+    guild_stats = DatabaseOptimizer.get_guild_stats()
+    world_stats = DatabaseOptimizer.get_world_stats()
+    
     stats = {
-        'total_users': User.query.count(),
-        'total_guilds': Guild.query.count(),
-        'total_worlds': World.query.count(),
+        'total_users': user_stats['total_users'],
+        'total_guilds': guild_stats['total_guilds'],
+        'total_worlds': world_stats['total_worlds'],
         'active_expeditions': Expedition.query.filter_by(status='Đang Diễn Ra').count()
     }
 
-    # Recent activities
-    recent_achievements = Achievement.query.order_by(Achievement.earned_at.desc()).limit(5).all()
+    # Get recent achievements with caching
+    recent_achievements = DatabaseOptimizer.get_recent_achievements(5)
 
     return render_template('index.html', stats=stats, recent_achievements=recent_achievements)
 
