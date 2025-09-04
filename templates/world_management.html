@@ -63,7 +63,7 @@
                     <h5 class="text-golden mb-0">
                         <i class="fas fa-crown me-2"></i>Thế Giới Sở Hữu
                     </h5>
-                    <button class="btn btn-sm btn-celestial mystical-btn" data-bs-toggle="modal" data-bs-target="#createWorldModal">
+                    <button class="btn btn-sm btn-celestial mystical-btn" onclick="openCreateWorldModal()">
                         <i class="fas fa-plus me-1"></i>Tạo Thế Giới
                     </button>
                 </div>
@@ -343,7 +343,7 @@
                 </form>
             </div>
             <div class="modal-footer border-top border-secondary">
-                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-secondary mystical-btn" onclick="closeCreateWorldModal()">Hủy</button>
                 <button type="button" class="btn btn-golden mystical-btn" onclick="createWorldFree()">Tạo Thế Giới Miễn Phí</button>
                 <button type="submit" form="createWorldForm" class="btn btn-purple mystical-btn">Tạo Thế Giới (50,000 Linh Thạch)</button>
             </div>
@@ -577,6 +577,38 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 
+function openCreateWorldModal() {
+    const modal = document.getElementById('createWorldModal');
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    modal.style.backgroundColor = 'rgba(15, 15, 35, 0.8)';
+    document.body.style.overflow = 'hidden';
+    
+    // Reset form
+    const form = document.getElementById('createWorldForm');
+    form.reset();
+    
+    // Add click outside to close
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeCreateWorldModal();
+        }
+    });
+}
+
+function closeCreateWorldModal() {
+    const modal = document.getElementById('createWorldModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    
+    // Remove any lingering backdrops
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(backdrop => backdrop.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.paddingRight = '';
+}
+
 function createWorldFree() {
     const form = document.getElementById('createWorldForm');
     const formData = new FormData(form);
@@ -614,22 +646,12 @@ function createWorldFree() {
     .then(data => {
         if (data.success) {
             alert('Đã tạo thế giới "' + data.world.name + '" thành công!');
-            // Close modal properly
-            const modalElement = document.getElementById('createWorldModal');
-            const modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            }
-            // Clean up backdrop manually
+            // Close modal using custom function
+            closeCreateWorldModal();
+            // Reload page to show new world
             setTimeout(() => {
-                const backdrops = document.querySelectorAll('.modal-backdrop');
-                backdrops.forEach(backdrop => backdrop.remove());
-                document.body.classList.remove('modal-open');
-                document.body.style.overflow = '';
-                document.body.style.paddingRight = '';
-                // Reload page to show new world
                 location.reload();
-            }, 300);
+            }, 500);
         } else {
             alert('Lỗi: ' + data.error);
         }
