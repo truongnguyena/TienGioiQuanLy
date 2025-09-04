@@ -278,15 +278,16 @@
                                 <tr>
                                     <td>
                                         <strong class="text-golden">{{ guild.name }}</strong>
-                                        {% if guild.id == user_guild.id if user_guild else false %}
+                                        {% if user_guild and guild.id == user_guild.id %}
                                         <span class="badge bg-success ms-2">Bang Hội Của Bạn</span>
                                         {% endif %}
                                     </td>
                                     <td class="text-celestial">
+                                        {% set leader_found = false %}
                                         {% for member in guild.members %}
-                                            {% if member.id == guild.leader_id %}
+                                            {% if member.id == guild.leader_id and not leader_found %}
                                                 {{ member.dao_name or member.username }}
-                                                {% break %}
+                                                {% set leader_found = true %}
                                             {% endif %}
                                         {% endfor %}
                                     </td>
