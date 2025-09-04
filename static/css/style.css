@@ -1306,6 +1306,58 @@ body {
     }
 }
 
+/* Modal backdrop fix */
+.modal-backdrop {
+    background-color: rgba(15, 15, 35, 0.8) !important;
+    z-index: 1040 !important;
+}
+
+.modal {
+    z-index: 1050 !important;
+}
+
+.modal.show .modal-dialog {
+    z-index: 1060 !important;
+}
+
+/* Prevent dark screen overlay */
+body.modal-open {
+    overflow: hidden !important;
+    padding-right: 0 !important;
+}
+
+/* World conquest styles */
+.conquest-btn {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.conquest-btn:hover {
+    background: linear-gradient(135deg, #c82333, #bd2130);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+}
+
+.conquest-success {
+    background: rgba(40, 167, 69, 0.1);
+    border: 1px solid rgba(40, 167, 69, 0.3);
+    border-radius: 8px;
+    padding: 1rem;
+    margin: 1rem 0;
+    animation: conquestGlow 2s ease-in-out;
+}
+
+@keyframes conquestGlow {
+    0% { background: rgba(40, 167, 69, 0.3); }
+    50% { background: rgba(40, 167, 69, 0.1); }
+    100% { background: rgba(40, 167, 69, 0.1); }
+}
+
 /* Guild Management Styles */
 .guild-stats {
     background: rgba(79, 172, 254, 0.1);

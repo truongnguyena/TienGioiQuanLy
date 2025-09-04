@@ -569,8 +569,26 @@ function upgradeWorld(worldId) {
 
 function conquerWorld(worldId) {
     if (confirm('Bạn có chắc muốn chinh phục thế giới này? Chi phí sẽ được trừ từ linh thạch của bạn.')) {
-        // Implementation for world conquest
-        alert('Tính năng chinh phục thế giới sẽ được phát triển!');
+        fetch(`/api/conquer-world/${worldId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Chinh phục thành công! ' + data.message);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('Lỗi: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi chinh phục thế giới!');
+        });
     }
 }
 

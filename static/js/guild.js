@@ -59,7 +59,11 @@ class GuildManager {
 
         // Validate input
         if (!guildData.name || guildData.name.trim().length < 3) {
-            window.tuTienApp.showNotification('Lỗi', 'Tên bang hội phải có ít nhất 3 ký tự!', 'error');
+            if (window.tuTienApp && window.tuTienApp.showNotification) {
+                window.tuTienApp.showNotification('Lỗi', 'Tên bang hội phải có ít nhất 3 ký tự!', 'error');
+            } else {
+                alert('Tên bang hội phải có ít nhất 3 ký tự!');
+            }
             return;
         }
 
@@ -86,11 +90,11 @@ class GuildManager {
             const data = await response.json();
 
             if (data.success) {
-                window.tuTienApp.showNotification(
-                    'Bang Hội Thành Lập!', 
-                    data.message, 
-                    'success'
-                );
+                if (window.tuTienApp && window.tuTienApp.showNotification) {
+                    window.tuTienApp.showNotification('Bang Hội Thành Lập!', data.message, 'success');
+                } else {
+                    alert('Bang hội đã được tạo thành công!');
+                }
                 
                 // Close modal and refresh page
                 closeCreateGuildModal();
@@ -104,7 +108,11 @@ class GuildManager {
         } catch (error) {
             console.error('Guild creation error:', error);
             const errorMsg = error.message || 'Không thể tạo bang hội. Vui lòng thử lại!';
-            window.tuTienApp.showNotification('Lỗi Tạo Bang Hội', errorMsg, 'error');
+            if (window.tuTienApp && window.tuTienApp.showNotification) {
+                window.tuTienApp.showNotification('Lỗi Tạo Bang Hội', errorMsg, 'error');
+            } else {
+                alert('Lỗi: ' + errorMsg);
+            }
         } finally {
             if (submitBtn) {
                 this.hideLoading(submitBtn, originalText);
@@ -266,7 +274,11 @@ class GuildManager {
             }
         } catch (error) {
             console.error('War declaration error:', error);
-            window.tuTienApp.showNotification('Lỗi Tuyên Chiến', error.message, 'error');
+            if (window.tuTienApp && window.tuTienApp.showNotification) {
+                window.tuTienApp.showNotification('Lỗi Tuyên Chiến', error.message, 'error');
+            } else {
+                alert('Lỗi tuyên chiến: ' + error.message);
+            }
         } finally {
             if (submitBtn) {
                 this.hideLoading(submitBtn, originalText);
@@ -1019,15 +1031,23 @@ function kickMember(memberId, memberName) {
 
 function closeCreateGuildModal() {
     const modal = document.getElementById('createGuildModal');
-    modal.style.display = 'none';
-    modal.classList.remove('show');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+    }
+    
+    // Reset body styles
     document.body.style.overflow = '';
+    document.body.style.paddingRight = '';
+    document.body.classList.remove('modal-open');
     
     // Remove any lingering backdrops
-    const backdrops = document.querySelectorAll('.modal-backdrop');
+    const backdrops = document.querySelectorAll('.modal-backdrop, .offcanvas-backdrop');
     backdrops.forEach(backdrop => backdrop.remove());
-    document.body.classList.remove('modal-open');
-    document.body.style.paddingRight = '';
+    
+    // Force remove any overlay styles
+    document.body.style.backgroundColor = '';
+    document.documentElement.style.overflow = '';
 }
 
 async function createGuild() {

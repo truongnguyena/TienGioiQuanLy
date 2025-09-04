@@ -1317,6 +1317,61 @@ def handle_join_request():
     """Xử lý yêu cầu gia nhập bang hội (placeholder)"""
     return jsonify({'success': True, 'message': 'Tính năng sẽ được phát triển!'})
 
+@app.route('/api/conquer-world/<int:world_id>', methods=['POST'])
+@login_required
+def conquer_world(world_id):
+    """Chinh phục thế giới khác"""
+    world = World.query.get_or_404(world_id)
+    
+    # Kiểm tra xem thế giới có thể chinh phục được không
+    if world.owner_id:
+        return jsonify({'success': False, 'error': 'Thế giới này đã có chủ!'})
+    
+    # Tính chi phí chinh phục
+    conquest_cost = world.danger_level * 5000
+    power_requirement = world.danger_level * 10000
+    
+    # Kiểm tra điều kiện
+    if current_user.spiritual_stones < conquest_cost:
+        return jsonify({'success': False, 'error': f'Cần {conquest_cost} linh thạch để chinh phục!'})
+    
+    if current_user.spiritual_power < power_requirement:
+        return jsonify({'success': False, 'error': f'Cần {power_requirement} linh lực để chinh phục!'})
+    
+    try:
+        # Trừ chi phí
+        current_user.spiritual_stones -= conquest_cost
+        current_user.spiritual_power -= power_requirement // 2  # Mất một nửa sức mạnh do chiến đấu
+        
+        # Chuyển quyền sở hữu
+        world.owner_id = current_user.id
+        world.is_contested = False
+        
+        # Thêm achievement
+        achievement = Achievement(
+            user_id=current_user.id,
+            title=f"Chinh Phục {world.name}",
+            description=f"Đã chinh phục thành công thế giới {world.name}",
+            category="conquest",
+            rarity="rare"
+        )
+        db.session.add(achievement)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Đã chinh phục {world.name}! Chi phí: {conquest_cost} linh thạch',
+            'world': {
+                'name': world.name,
+                'production': world.spiritual_stones_production
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Lỗi khi chinh phục thế giới!'})
+
 @app.route('/api/refresh-war-predictions', methods=['GET'])
 @login_required
 def refresh_war_predictions():
