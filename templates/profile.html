@@ -62,7 +62,13 @@
                                         
                                         <div class="info-item">
                                             <span class="info-label">Gia Nhập:</span>
-                                            <span class="text-light">{{ current_user.created_at.strftime('%d/%m/%Y') }}</span>
+                                            <span class="text-light">
+                                                {% if current_user.created_at %}
+                                                    {{ current_user.created_at.strftime('%d/%m/%Y') }}
+                                                {% else %}
+                                                    Chưa rõ
+                                                {% endif %}
+                                            </span>
                                         </div>
                                         
                                         <div class="info-item">
@@ -180,7 +186,13 @@
                                             {{ achievement.rarity.title() }}
                                         </span>
                                     </div>
-                                    <small class="text-muted">{{ achievement.earned_at.strftime('%d/%m/%Y') }}</small>
+                                    <small class="text-muted">
+                                    {% if achievement.earned_at %}
+                                        {{ achievement.earned_at.strftime('%d/%m/%Y') }}
+                                    {% else %}
+                                        Vừa đạt được
+                                    {% endif %}
+                                </small>
                                 </div>
                                 <p class="text-light mt-2 mb-0">{{ achievement.description }}</p>
                             </div>
@@ -241,7 +253,11 @@
                                             {{ user_participant.contribution_points if user_participant else 0 }} điểm
                                         </td>
                                         <td class="text-muted">
-                                            {{ user_participant.joined_at.strftime('%d/%m/%Y') if user_participant else 'N/A' }}
+                                            {% if user_participant and user_participant.joined_at %}
+                                                {{ user_participant.joined_at.strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                N/A
+                                            {% endif %}
                                         </td>
                                     </tr>
                                     {% endfor %}
@@ -288,7 +304,13 @@
                             </div>
                             <div class="record-content">
                                 <h6 class="text-light">Ngày Tu Luyện</h6>
-                                <p class="text-celestial">{{ ((current_user.created_at - current_user.created_at).days + 1) }} ngày</p>
+                                <p class="text-celestial">
+                                    {% if current_user.created_at %}
+                                        Từ {{ current_user.created_at.strftime('%m/%Y') }}
+                                    {% else %}
+                                        Mới tham gia
+                                    {% endif %}
+                                </p>
                             </div>
                         </div>
 

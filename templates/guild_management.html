@@ -223,7 +223,13 @@
                                 <div class="war-info mt-2">
                                     <div class="d-flex justify-content-between">
                                         <span class="text-light">Bắt Đầu:</span>
-                                        <span class="text-celestial">{{ war.start_time.strftime('%d/%m/%Y') }}</span>
+                                        <span class="text-celestial">
+                                            {% if war.start_time %}
+                                                {{ war.start_time.strftime('%d/%m/%Y') }}
+                                            {% else %}
+                                                Chưa rõ
+                                            {% endif %}
+                                        </span>
                                     </div>
                                     <div class="d-flex justify-content-between">
                                         <span class="text-light">Trạng Thái:</span>
