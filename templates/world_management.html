@@ -288,11 +288,13 @@
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="form-label text-celestial">Tên Thế Giới</label>
-                            <input type="text" class="form-control mystical-input" name="world_name" required>
+                            <input type="text" class="form-control" name="world_name" required 
+                                   style="background: rgba(26, 26, 46, 0.9) !important; border: 2px solid rgba(255, 215, 0, 0.3) !important; color: #e0e6ed !important; border-radius: 8px !important;">
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label text-celestial">Loại Thế Giới</label>
-                            <select class="form-control mystical-input" name="world_type" required>
+                            <select class="form-control" name="world_type" required 
+                                    style="background: rgba(26, 26, 46, 0.9) !important; border: 2px solid rgba(255, 215, 0, 0.3) !important; color: #e0e6ed !important; border-radius: 8px !important;">
                                 <option value="">Chọn loại thế giới</option>
                                 <option value="Linh Giới">Linh Giới</option>
                                 <option value="Ma Cảnh">Ma Cảnh</option>
@@ -305,7 +307,8 @@
                     
                     <div class="mb-3">
                         <label class="form-label text-celestial">Mô Tả</label>
-                        <textarea class="form-control mystical-input" name="description" rows="3"></textarea>
+                        <textarea class="form-control" name="description" rows="3" 
+                                  style="background: rgba(26, 26, 46, 0.9) !important; border: 2px solid rgba(255, 215, 0, 0.3) !important; color: #e0e6ed !important; border-radius: 8px !important; resize: vertical;"></textarea>
                     </div>
                     
                     <div class="row">
@@ -517,6 +520,25 @@ function joinContest(worldId) {
         alert('Tính năng tranh chấp thế giới sẽ được phát triển!');
     }
 }
+
+// Fix input focus states
+document.addEventListener('DOMContentLoaded', function() {
+    const modalInputs = document.querySelectorAll('#createWorldModal input, #createWorldModal select, #createWorldModal textarea');
+    
+    modalInputs.forEach(input => {
+        input.addEventListener('focus', function() {
+            this.style.background = 'rgba(26, 26, 46, 0.95) !important';
+            this.style.borderColor = '#ffd700 !important';
+            this.style.boxShadow = '0 0 0 0.2rem rgba(255, 215, 0, 0.25) !important';
+        });
+        
+        input.addEventListener('blur', function() {
+            this.style.background = 'rgba(26, 26, 46, 0.9) !important';
+            this.style.borderColor = 'rgba(255, 215, 0, 0.3) !important';
+            this.style.boxShadow = 'none !important';
+        });
+    });
+});
 
 function createWorldFree() {
     const form = document.getElementById('createWorldForm');
