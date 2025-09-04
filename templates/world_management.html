@@ -272,7 +272,7 @@
 </div>
 
 <!-- Create World Modal -->
-<div class="modal fade" id="createWorldModal" tabindex="-1">
+<div class="modal fade" id="createWorldModal" tabindex="-1" data-bs-backdrop="true" data-bs-keyboard="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content mystical-modal">
             <div class="modal-header border-bottom border-secondary">
@@ -382,6 +382,15 @@
 }
 
 /* Ensure modal is properly layered */
+.modal {
+    z-index: 1060 !important;
+}
+
+.modal-backdrop {
+    z-index: 1050 !important;
+    background-color: rgba(15, 15, 35, 0.8) !important;
+}
+
 .modal.fade .modal-dialog {
     transition: transform 0.3s ease-out;
     transform: translate(0, -50px);
@@ -389,6 +398,11 @@
 
 .modal.show .modal-dialog {
     transform: none;
+}
+
+/* Fix modal content z-index */
+.mystical-modal {
+    z-index: 1065 !important;
 }
 
 /* Make sure inputs are clickable */
@@ -521,7 +535,7 @@ function joinContest(worldId) {
     }
 }
 
-// Fix input focus states
+// Fix input focus states and modal interactions
 document.addEventListener('DOMContentLoaded', function() {
     const modalInputs = document.querySelectorAll('#createWorldModal input, #createWorldModal select, #createWorldModal textarea');
     
@@ -538,6 +552,29 @@ document.addEventListener('DOMContentLoaded', function() {
             this.style.boxShadow = 'none !important';
         });
     });
+    
+    // Fix modal backdrop issues
+    const modal = document.getElementById('createWorldModal');
+    if (modal) {
+        modal.addEventListener('hidden.bs.modal', function() {
+            // Remove any lingering backdrop
+            const backdrops = document.querySelectorAll('.modal-backdrop');
+            backdrops.forEach(backdrop => backdrop.remove());
+            // Re-enable body scrolling
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        });
+        
+        modal.addEventListener('shown.bs.modal', function() {
+            // Ensure modal content is interactive
+            const modalContent = modal.querySelector('.modal-content');
+            if (modalContent) {
+                modalContent.style.pointerEvents = 'auto';
+                modalContent.style.zIndex = '1065';
+            }
+        });
+    }
 });
 
 function createWorldFree() {
@@ -577,11 +614,22 @@ function createWorldFree() {
     .then(data => {
         if (data.success) {
             alert('Đã tạo thế giới "' + data.world.name + '" thành công!');
-            // Close modal
-            const modal = bootstrap.Modal.getInstance(document.getElementById('createWorldModal'));
-            modal.hide();
-            // Reload page to show new world
-            location.reload();
+            // Close modal properly
+            const modalElement = document.getElementById('createWorldModal');
+            const modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+            // Clean up backdrop manually
+            setTimeout(() => {
+                const backdrops = document.querySelectorAll('.modal-backdrop');
+                backdrops.forEach(backdrop => backdrop.remove());
+                document.body.classList.remove('modal-open');
+                document.body.style.overflow = '';
+                document.body.style.paddingRight = '';
+                // Reload page to show new world
+                location.reload();
+            }, 300);
         } else {
             alert('Lỗi: ' + data.error);
         }
