@@ -1,0 +1,455 @@
+{% extends "base.html" %}
+
+{% block title %}Quản Lý Thế Giới - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header mb-4">
+                <h1 class="text-golden">
+                    <i class="fas fa-globe me-3"></i>Quản Lý Thế Giới Thiên Đạo
+                </h1>
+                <p class="text-light opacity-75">Điều khiển các vùng đất linh thiêng và tài nguyên huyền bí</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- World Overview Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-crown text-golden" style="font-size: 2.5rem;"></i>
+                    <h3 class="text-purple mt-2">{{ owned_worlds|length }}</h3>
+                    <p class="text-light">Thế Giới Sở Hữu</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-gem text-celestial" style="font-size: 2.5rem;"></i>
+                    <h3 class="text-purple mt-2">{{ owned_worlds|sum(attribute='spiritual_stones_production') or 0 }}</h3>
+                    <p class="text-light">Linh Thạch/Ngày</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-exclamation-triangle text-golden" style="font-size: 2.5rem;"></i>
+                    <h3 class="text-purple mt-2">{{ contested_worlds|length }}</h3>
+                    <p class="text-light">Thế Giới Tranh Chấp</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-search text-celestial" style="font-size: 2.5rem;"></i>
+                    <h3 class="text-purple mt-2">{{ available_worlds|length }}</h3>
+                    <p class="text-light">Thế Giới Khả Dụng</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Owned Worlds -->
+        <div class="col-lg-6 mb-4">
+            <div class="mystical-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-crown me-2"></i>Thế Giới Sở Hữu
+                    </h5>
+                    <button class="btn btn-sm btn-celestial mystical-btn" data-bs-toggle="modal" data-bs-target="#createWorldModal">
+                        <i class="fas fa-plus me-1"></i>Tạo Thế Giới
+                    </button>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    {% if owned_worlds %}
+                        {% for world in owned_worlds %}
+                        <div class="world-card mb-3">
+                            <div class="world-header">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-purple mb-1">{{ world.name }}</h6>
+                                        <span class="world-type-badge type-{{ world.world_type|replace(' ', '-')|lower }}">
+                                            {{ world.world_type }}
+                                        </span>
+                                    </div>
+                                    <div class="world-actions">
+                                        <button class="btn btn-sm btn-outline-celestial mystical-btn me-2" onclick="exploreWorld({{ world.id }})">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-golden mystical-btn" onclick="upgradeWorld({{ world.id }})">
+                                            <i class="fas fa-arrow-up"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="world-stats mt-2">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <small class="text-celestial d-block">Linh Khí</small>
+                                        <div class="progress mystical-progress mb-1" style="height: 6px;">
+                                            <div class="progress-bar progress-bar-celestial" style="width: {{ world.spiritual_density }}%"></div>
+                                        </div>
+                                        <small class="text-light">{{ world.spiritual_density }}/100</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-golden d-block">Tài Nguyên</small>
+                                        <div class="progress mystical-progress mb-1" style="height: 6px;">
+                                            <div class="progress-bar progress-bar-golden" style="width: {{ world.resource_richness }}%"></div>
+                                        </div>
+                                        <small class="text-light">{{ world.resource_richness }}/100</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-purple d-block">Nguy Hiểm</small>
+                                        <div class="danger-level danger-{{ world.danger_level }}">
+                                            {% for i in range(world.danger_level) %}
+                                            <i class="fas fa-skull"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="world-production mt-2 pt-2 border-top border-secondary">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-light">Sản Xuất/Ngày:</span>
+                                    <span class="text-golden">+{{ world.spiritual_stones_production }} Linh Thạch</span>
+                                </div>
+                                {% if world.rare_materials_count > 0 %}
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-light">Nguyên Liệu Quý:</span>
+                                    <span class="text-celestial">{{ world.rare_materials_count }}</span>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-globe text-muted mb-3" style="font-size: 4rem;"></i>
+                            <h5 class="text-light">Chưa Sở Hữu Thế Giới Nào</h5>
+                            <p class="text-muted">Hãy chinh phục hoặc tạo thế giới đầu tiên của bạn!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Available Worlds -->
+        <div class="col-lg-6 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-search me-2"></i>Thế Giới Khả Dụng
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 500px; overflow-y: auto;">
+                    {% if available_worlds %}
+                        {% for world in available_worlds %}
+                        <div class="world-card mb-3">
+                            <div class="world-header">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-purple mb-1">{{ world.name }}</h6>
+                                        <span class="world-type-badge type-{{ world.world_type|replace(' ', '-')|lower }}">
+                                            {{ world.world_type }}
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-sm btn-purple mystical-btn" onclick="conquerWorld({{ world.id }})">
+                                        <i class="fas fa-flag me-1"></i>Chinh Phục
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <p class="text-light mt-2 mb-2">{{ world.description }}</p>
+                            
+                            <div class="world-stats">
+                                <div class="row text-center">
+                                    <div class="col-4">
+                                        <small class="text-celestial d-block">Linh Khí</small>
+                                        <div class="progress mystical-progress mb-1" style="height: 6px;">
+                                            <div class="progress-bar progress-bar-celestial" style="width: {{ world.spiritual_density }}%"></div>
+                                        </div>
+                                        <small class="text-light">{{ world.spiritual_density }}/100</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-golden d-block">Tài Nguyên</small>
+                                        <div class="progress mystical-progress mb-1" style="height: 6px;">
+                                            <div class="progress-bar progress-bar-golden" style="width: {{ world.resource_richness }}%"></div>
+                                        </div>
+                                        <small class="text-light">{{ world.resource_richness }}/100</small>
+                                    </div>
+                                    <div class="col-4">
+                                        <small class="text-purple d-block">Nguy Hiểm</small>
+                                        <div class="danger-level danger-{{ world.danger_level }}">
+                                            {% for i in range(world.danger_level) %}
+                                            <i class="fas fa-skull"></i>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="conquest-info mt-2 pt-2 border-top border-secondary">
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-light">Chi Phí Chinh Phục:</span>
+                                    <span class="text-golden">{{ world.danger_level * 5000 }} Linh Thạch</span>
+                                </div>
+                                <div class="d-flex justify-content-between">
+                                    <span class="text-light">Yêu Cầu Sức Mạnh:</span>
+                                    <span class="text-purple">{{ world.danger_level * 10000 }}</span>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-search text-muted mb-3" style="font-size: 4rem;"></i>
+                            <h5 class="text-light">Không Có Thế Giới Khả Dụng</h5>
+                            <p class="text-muted">Tất cả thế giới đã có chủ hoặc đang tranh chấp.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contested Worlds -->
+    {% if contested_worlds %}
+    <div class="row">
+        <div class="col-12">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Thế Giới Tranh Chấp
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for world in contested_worlds %}
+                        <div class="col-lg-4 mb-3">
+                            <div class="contested-world-card">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-purple mb-1">{{ world.name }}</h6>
+                                        <span class="contest-status">
+                                            <i class="fas fa-swords text-golden me-1"></i>Đang Tranh Chấp
+                                        </span>
+                                    </div>
+                                    {% if world.owner_id != current_user.id %}
+                                    <button class="btn btn-sm btn-golden mystical-btn" onclick="joinContest({{ world.id }})">
+                                        <i class="fas fa-sword me-1"></i>Tham Chiến
+                                    </button>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="contest-info mt-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-light">Chủ Hiện Tại:</span>
+                                        <span class="text-celestial">{{ world.owner.dao_name or world.owner.username }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-light">Giá Trị:</span>
+                                        <span class="text-golden">{{ world.spiritual_stones_production * 30 }} Linh Thạch</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create World Modal -->
+<div class="modal fade" id="createWorldModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-plus me-2"></i>Tạo Thế Giới Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('world_management') }}">
+                    <input type="hidden" name="action" value="create_world">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Tên Thế Giới</label>
+                            <input type="text" class="form-control mystical-input" name="world_name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Loại Thế Giới</label>
+                            <select class="form-control mystical-input" name="world_type" required>
+                                <option value="">Chọn loại thế giới</option>
+                                <option value="Linh Giới">Linh Giới</option>
+                                <option value="Ma Cảnh">Ma Cảnh</option>
+                                <option value="Thiên Giới">Thiên Giới</option>
+                                <option value="Địa Phủ">Địa Phủ</option>
+                                <option value="Bí Cảnh">Bí Cảnh</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mô Tả</label>
+                        <textarea class="form-control mystical-input" name="description" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-celestial">Mật Độ Linh Khí (0-100)</label>
+                            <input type="range" class="form-range" name="spiritual_density" min="0" max="100" value="50" oninput="updateRangeValue(this, 'spiritual_density_value')">
+                            <div class="text-center text-golden" id="spiritual_density_value">50</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-celestial">Độ Phong Phú Tài Nguyên (0-100)</label>
+                            <input type="range" class="form-range" name="resource_richness" min="0" max="100" value="50" oninput="updateRangeValue(this, 'resource_richness_value')">
+                            <div class="text-center text-golden" id="resource_richness_value">50</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-celestial">Mức Độ Nguy Hiểm (1-10)</label>
+                            <input type="range" class="form-range" name="danger_level" min="1" max="10" value="5" oninput="updateRangeValue(this, 'danger_level_value')">
+                            <div class="text-center text-purple" id="danger_level_value">5</div>
+                        </div>
+                    </div>
+                    
+                    <div class="creation-cost-info p-3 bg-dark bg-opacity-25 rounded">
+                        <h6 class="text-golden mb-2">Chi Phí Tạo Thế Giới:</h6>
+                        <div class="d-flex justify-content-between">
+                            <span>Linh Thạch:</span>
+                            <span class="text-golden">50,000</span>
+                        </div>
+                        <div class="d-flex justify-content-between">
+                            <span>Thời Gian:</span>
+                            <span class="text-celestial">7 ngày</span>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" form="createWorldForm" class="btn btn-golden mystical-btn">Tạo Thế Giới</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.world-card {
+    background: rgba(142, 45, 226, 0.1);
+    border: 1px solid rgba(142, 45, 226, 0.3);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.world-card:hover {
+    background: rgba(142, 45, 226, 0.15);
+    transform: translateY(-2px);
+}
+
+.world-type-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.type-linh-giới { background: rgba(79, 172, 254, 0.2); color: #4facfe; }
+.type-ma-cảnh { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+.type-thiên-giới { background: rgba(255, 215, 0, 0.2); color: #ffd700; }
+.type-địa-phủ { background: rgba(108, 117, 125, 0.2); color: #6c757d; }
+.type-bí-cảnh { background: rgba(142, 45, 226, 0.2); color: #8e2de2; }
+
+.danger-level {
+    display: flex;
+    justify-content: center;
+    gap: 2px;
+}
+
+.danger-1 { color: #28a745; }
+.danger-2, .danger-3 { color: #ffc107; }
+.danger-4, .danger-5 { color: #fd7e14; }
+.danger-6, .danger-7 { color: #dc3545; }
+.danger-8, .danger-9, .danger-10 { color: #6f42c1; }
+
+.progress-bar-celestial {
+    background: linear-gradient(90deg, var(--celestial), #00f2fe);
+}
+
+.contested-world-card {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.contested-world-card:hover {
+    background: rgba(255, 215, 0, 0.15);
+}
+
+.contest-status {
+    color: #ffc107;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+.form-range::-webkit-slider-thumb {
+    background: var(--golden);
+}
+
+.form-range::-moz-range-thumb {
+    background: var(--golden);
+    border: none;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function updateRangeValue(input, displayId) {
+    document.getElementById(displayId).textContent = input.value;
+}
+
+function exploreWorld(worldId) {
+    // Implementation for world exploration
+    alert('Tính năng khám phá thế giới sẽ được phát triển!');
+}
+
+function upgradeWorld(worldId) {
+    // Implementation for world upgrades
+    alert('Tính năng nâng cấp thế giới sẽ được phát triển!');
+}
+
+function conquerWorld(worldId) {
+    if (confirm('Bạn có chắc muốn chinh phục thế giới này? Chi phí sẽ được trừ từ linh thạch của bạn.')) {
+        // Implementation for world conquest
+        alert('Tính năng chinh phục thế giới sẽ được phát triển!');
+    }
+}
+
+function joinContest(worldId) {
+    if (confirm('Tham gia tranh chấp thế giới này? Bạn sẽ cần sức mạnh và tài nguyên để chiến thắng.')) {
+        // Implementation for joining world contests
+        alert('Tính năng tranh chấp thế giới sẽ được phát triển!');
+    }
+}
+</script>
+{% endblock %}

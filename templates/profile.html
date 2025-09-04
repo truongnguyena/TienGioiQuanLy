@@ -1,0 +1,807 @@
+{% extends "base.html" %}
+
+{% block title %}Hồ Sơ - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Profile Header -->
+        <div class="col-12 mb-4">
+            <div class="mystical-card">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-3 text-center">
+                            <div class="profile-avatar">
+                                <div class="avatar-container">
+                                    <i class="fas fa-user-ninja avatar-icon"></i>
+                                    <div class="cultivation-aura aura-{{ current_user.get_cultivation_stage()|replace(' ', '-')|lower }}"></div>
+                                </div>
+                                <h4 class="text-golden mt-3">{{ current_user.dao_name or current_user.username }}</h4>
+                                <p class="text-celestial">{{ current_user.cultivation_level }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-9">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="profile-stats">
+                                        <div class="stat-item">
+                                            <i class="fas fa-fist-raised text-purple"></i>
+                                            <div class="stat-info">
+                                                <h5 class="text-light">{{ "{:,}".format(current_user.spiritual_power) }}</h5>
+                                                <p class="text-muted">Linh Lực Tu Luyện</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="stat-item">
+                                            <i class="fas fa-star text-golden"></i>
+                                            <div class="stat-info">
+                                                <h5 class="text-light">{{ current_user.reputation }}</h5>
+                                                <p class="text-muted">Uy Tín Thiên Hạ</p>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="stat-item">
+                                            <i class="fas fa-yin-yang text-celestial"></i>
+                                            <div class="stat-info">
+                                                <h5 class="text-light {{ 'text-success' if current_user.karma_points >= 0 else 'text-danger' }}">
+                                                    {{ current_user.karma_points }}
+                                                </h5>
+                                                <p class="text-muted">Nghiệp Quả</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6">
+                                    <div class="profile-info">
+                                        <div class="info-item">
+                                            <span class="info-label">Email:</span>
+                                            <span class="text-light">{{ current_user.email }}</span>
+                                        </div>
+                                        
+                                        <div class="info-item">
+                                            <span class="info-label">Gia Nhập:</span>
+                                            <span class="text-light">{{ current_user.created_at.strftime('%d/%m/%Y') }}</span>
+                                        </div>
+                                        
+                                        <div class="info-item">
+                                            <span class="info-label">Tu Luyện Cuối:</span>
+                                            <span class="text-light">{{ current_user.last_cultivation.strftime('%d/%m/%Y %H:%M') if current_user.last_cultivation else 'Chưa tu luyện' }}</span>
+                                        </div>
+                                        
+                                        {% if current_user.guild %}
+                                        <div class="info-item">
+                                            <span class="info-label">Bang Hội:</span>
+                                            <span class="text-celestial">{{ current_user.guild.name }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="profile-actions mt-3">
+                                        <button class="btn btn-golden mystical-btn me-2" data-bs-toggle="modal" data-bs-target="#editProfileModal">
+                                            <i class="fas fa-edit me-2"></i>Chỉnh Sửa
+                                        </button>
+                                        <button class="btn btn-purple mystical-btn" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                                            <i class="fas fa-lock me-2"></i>Đổi Mật Khẩu
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Cultivation Progress -->
+        <div class="col-lg-6 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-purple mb-0">
+                        <i class="fas fa-chart-line me-2"></i>Tiến Trình Tu Luyện
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <!-- Current Stage Progress -->
+                    <div class="cultivation-progress mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-light">{{ current_user.cultivation_level }}</span>
+                            <span class="text-golden">{{ "{:,}".format(current_user.spiritual_power) }} / {{ "{:,}".format(1000000) }}</span>
+                        </div>
+                        <div class="progress mystical-progress">
+                            <div class="progress-bar progress-bar-golden" style="width: {{ (current_user.spiritual_power % 1000000) / 10000 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Cultivation Statistics -->
+                    <div class="cultivation-stats">
+                        <div class="row text-center">
+                            <div class="col-4 mb-3">
+                                <div class="cultivation-stat-item">
+                                    <i class="fas fa-meditation text-celestial"></i>
+                                    <h6 class="text-light mt-2">{{ current_user.cultivation_points }}</h6>
+                                    <small class="text-muted">Điểm Tu Luyện</small>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <div class="cultivation-stat-item">
+                                    <i class="fas fa-gem text-golden"></i>
+                                    <h6 class="text-light mt-2">{{ current_user.spiritual_stones }}</h6>
+                                    <small class="text-muted">Linh Thạch</small>
+                                </div>
+                            </div>
+                            <div class="col-4 mb-3">
+                                <div class="cultivation-stat-item">
+                                    <i class="fas fa-pills text-purple"></i>
+                                    <h6 class="text-light mt-2">{{ current_user.pills_count }}</h6>
+                                    <small class="text-muted">Đan Dược</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cultivation History Chart -->
+                    <div class="mt-4">
+                        <canvas id="cultivationChart" height="200"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Achievements -->
+        <div class="col-lg-6 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-medal me-2"></i>Thành Tựu ({{ user_achievements|length }})
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% if user_achievements %}
+                        {% for achievement in user_achievements %}
+                        <div class="achievement-item mb-3">
+                            <div class="achievement-icon">
+                                {% if achievement.rarity == 'legendary' %}
+                                <i class="fas fa-crown text-warning"></i>
+                                {% elif achievement.rarity == 'rare' %}
+                                <i class="fas fa-gem text-primary"></i>
+                                {% else %}
+                                <i class="fas fa-medal text-secondary"></i>
+                                {% endif %}
+                            </div>
+                            <div class="achievement-content">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="text-purple mb-1">{{ achievement.title }}</h6>
+                                        <span class="achievement-rarity rarity-{{ achievement.rarity }}">
+                                            {{ achievement.rarity.title() }}
+                                        </span>
+                                    </div>
+                                    <small class="text-muted">{{ achievement.earned_at.strftime('%d/%m/%Y') }}</small>
+                                </div>
+                                <p class="text-light mt-2 mb-0">{{ achievement.description }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-medal text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="text-light">Chưa Có Thành Tựu</h6>
+                            <p class="text-muted">Hãy tu luyện chăm chỉ để đạt được thành tựu đầu tiên!</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Expedition History -->
+        <div class="col-lg-8 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-map me-2"></i>Lịch Sử Đạo Lữ
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if user_expeditions %}
+                        <div class="table-responsive">
+                            <table class="table table-dark mystical-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tên Đạo Lữ</th>
+                                        <th>Điểm Đến</th>
+                                        <th>Độ Khó</th>
+                                        <th>Trạng Thái</th>
+                                        <th>Đóng Góp</th>
+                                        <th>Ngày Tham Gia</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for expedition in user_expeditions %}
+                                    {% set user_participant = expedition.participants|selectattr('user_id', 'equalto', current_user.id)|first %}
+                                    <tr>
+                                        <td class="text-light">{{ expedition.name }}</td>
+                                        <td class="text-celestial">{{ expedition.destination }}</td>
+                                        <td>
+                                            <span class="difficulty-badge difficulty-{{ expedition.difficulty_level }}">
+                                                Cấp {{ expedition.difficulty_level }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="status-badge status-{{ expedition.status|replace(' ', '-')|lower }}">
+                                                {{ expedition.status }}
+                                            </span>
+                                        </td>
+                                        <td class="text-golden">
+                                            {{ user_participant.contribution_points if user_participant else 0 }} điểm
+                                        </td>
+                                        <td class="text-muted">
+                                            {{ user_participant.joined_at.strftime('%d/%m/%Y') if user_participant else 'N/A' }}
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-map text-muted mb-3" style="font-size: 3rem;"></i>
+                            <h6 class="text-light">Chưa Tham Gia Đạo Lữ Nào</h6>
+                            <p class="text-muted">Hãy tham gia các cuộc đạo lữ để có thêm kinh nghiệm!</p>
+                            <a href="{{ url_for('expeditions') }}" class="btn btn-celestial mystical-btn">
+                                <i class="fas fa-search me-2"></i>Tìm Đạo Lữ
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Personal Records -->
+        <div class="col-lg-4 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-purple mb-0">
+                        <i class="fas fa-chart-bar me-2"></i>Kỷ Lục Cá Nhân
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="record-list">
+                        <div class="record-item">
+                            <div class="record-icon">
+                                <i class="fas fa-trophy text-golden"></i>
+                            </div>
+                            <div class="record-content">
+                                <h6 class="text-light">Cao Nhất Từng Đạt</h6>
+                                <p class="text-celestial">{{ "{:,}".format(current_user.spiritual_power) }} Linh Lực</p>
+                            </div>
+                        </div>
+
+                        <div class="record-item">
+                            <div class="record-icon">
+                                <i class="fas fa-calendar text-purple"></i>
+                            </div>
+                            <div class="record-content">
+                                <h6 class="text-light">Ngày Tu Luyện</h6>
+                                <p class="text-celestial">{{ ((current_user.created_at - current_user.created_at).days + 1) }} ngày</p>
+                            </div>
+                        </div>
+
+                        <div class="record-item">
+                            <div class="record-icon">
+                                <i class="fas fa-fire text-golden"></i>
+                            </div>
+                            <div class="record-content">
+                                <h6 class="text-light">Streak Tu Luyện</h6>
+                                <p class="text-celestial">5 ngày liên tiếp</p>
+                            </div>
+                        </div>
+
+                        <div class="record-item">
+                            <div class="record-icon">
+                                <i class="fas fa-users text-celestial"></i>
+                            </div>
+                            <div class="record-content">
+                                <h6 class="text-light">Đạo Lữ Hoàn Thành</h6>
+                                <p class="text-celestial">{{ user_expeditions|length }} lần</p>
+                            </div>
+                        </div>
+
+                        <div class="record-item">
+                            <div class="record-icon">
+                                <i class="fas fa-gem text-purple"></i>
+                            </div>
+                            <div class="record-content">
+                                <h6 class="text-light">Tài Nguyên Thu Thập</h6>
+                                <p class="text-celestial">{{ "{:,}".format(current_user.spiritual_stones) }} Linh Thạch</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Profile Modal -->
+<div class="modal fade" id="editProfileModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-edit me-2"></i>Chỉnh Sửa Hồ Sơ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('profile') }}">
+                    <input type="hidden" name="action" value="update_profile">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Đạo Hiệu</label>
+                        <input type="text" class="form-control mystical-input" name="dao_name" 
+                               value="{{ current_user.dao_name or '' }}" 
+                               placeholder="VD: Thiên Kiếm Tử, Linh Vũ Đạo Nhân...">
+                        <div class="form-text text-light opacity-75">Tên gọi của bạn trong thế giới tu tiên</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Email</label>
+                        <input type="email" class="form-control mystical-input" name="email" 
+                               value="{{ current_user.email }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Môn Phái Trực Thuộc</label>
+                        <input type="text" class="form-control mystical-input" name="sect_affiliation" 
+                               value="{{ current_user.sect_affiliation or '' }}" 
+                               placeholder="VD: Thiên Sơn Phái, Hoa Sơn Phái...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" form="editProfileForm" class="btn btn-golden mystical-btn">
+                    <i class="fas fa-save me-2"></i>Lưu Thay Đổi
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Change Password Modal -->
+<div class="modal fade" id="changePasswordModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-purple">
+                    <i class="fas fa-lock me-2"></i>Đổi Mật Khẩu
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('profile') }}">
+                    <input type="hidden" name="action" value="change_password">
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mật Khẩu Hiện Tại</label>
+                        <input type="password" class="form-control mystical-input" name="current_password" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mật Khẩu Mới</label>
+                        <input type="password" class="form-control mystical-input" name="new_password" 
+                               id="newPassword" required>
+                        <div class="form-text text-light opacity-75">Ít nhất 6 ký tự</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Xác Nhận Mật Khẩu Mới</label>
+                        <input type="password" class="form-control mystical-input" name="confirm_password" 
+                               id="confirmPassword" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" form="changePasswordForm" class="btn btn-purple mystical-btn">
+                    <i class="fas fa-check me-2"></i>Đổi Mật Khẩu
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.profile-avatar {
+    position: relative;
+}
+
+.avatar-container {
+    position: relative;
+    display: inline-block;
+}
+
+.avatar-icon {
+    font-size: 5rem;
+    color: var(--golden);
+    padding: 2rem;
+    background: rgba(26, 26, 46, 0.8);
+    border-radius: 50%;
+    border: 3px solid var(--golden);
+}
+
+.cultivation-aura {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    right: -10px;
+    bottom: -10px;
+    border-radius: 50%;
+    animation: aura-glow 3s ease-in-out infinite alternate;
+}
+
+.aura-luyện-khí { background: radial-gradient(circle, rgba(108, 117, 125, 0.3), transparent); }
+.aura-trúc-cơ { background: radial-gradient(circle, rgba(79, 172, 254, 0.3), transparent); }
+.aura-kết-đan { background: radial-gradient(circle, rgba(255, 193, 7, 0.3), transparent); }
+.aura-nguyên-anh { background: radial-gradient(circle, rgba(220, 53, 69, 0.3), transparent); }
+.aura-hóa-thần { background: radial-gradient(circle, rgba(142, 45, 226, 0.3), transparent); }
+
+@keyframes aura-glow {
+    from { opacity: 0.5; transform: scale(1); }
+    to { opacity: 0.8; transform: scale(1.1); }
+}
+
+.profile-stats {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.stat-item i {
+    font-size: 2rem;
+    width: 50px;
+    text-align: center;
+}
+
+.stat-info h5 {
+    margin-bottom: 0.25rem;
+    font-weight: bold;
+}
+
+.stat-info p {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.info-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.info-label {
+    color: var(--celestial);
+    font-weight: 600;
+    min-width: 120px;
+}
+
+.cultivation-stat-item {
+    background: rgba(142, 45, 226, 0.1);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.cultivation-stat-item:hover {
+    background: rgba(142, 45, 226, 0.15);
+    transform: translateY(-2px);
+}
+
+.cultivation-stat-item i {
+    font-size: 1.5rem;
+}
+
+.achievement-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(26, 26, 46, 0.5);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.achievement-item:hover {
+    background: rgba(26, 26, 46, 0.7);
+    transform: translateX(5px);
+}
+
+.achievement-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.achievement-content {
+    flex: 1;
+}
+
+.achievement-rarity {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.rarity-common { background: rgba(108, 117, 125, 0.2); color: #6c757d; }
+.rarity-rare { background: rgba(79, 172, 254, 0.2); color: var(--celestial); }
+.rarity-legendary { background: rgba(255, 215, 0, 0.2); color: var(--golden); }
+
+.record-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.record-item {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: rgba(79, 172, 254, 0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.record-item:hover {
+    background: rgba(79, 172, 254, 0.15);
+    transform: translateY(-2px);
+}
+
+.record-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.record-content h6 {
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+}
+
+.record-content p {
+    margin-bottom: 0;
+    font-weight: bold;
+}
+
+.difficulty-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.difficulty-1 { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+.difficulty-2 { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.difficulty-3 { background: rgba(255, 136, 0, 0.2); color: #ff8800; }
+.difficulty-4 { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+.difficulty-5 { background: rgba(142, 45, 226, 0.2); color: var(--purple); }
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-tuyển-thành-viên { background: rgba(79, 172, 254, 0.2); color: var(--celestial); }
+.status-đang-diễn-ra { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.status-hoàn-thành { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+.status-thất-bại { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+
+.mystical-table {
+    font-size: 0.9rem;
+}
+
+.mystical-table th {
+    border-color: rgba(255, 215, 0, 0.3);
+    color: var(--golden);
+    font-weight: 600;
+}
+
+.mystical-table td {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.mystical-table tbody tr:hover {
+    background: rgba(142, 45, 226, 0.1);
+}
+
+@media (max-width: 768px) {
+    .profile-stats, .profile-info {
+        margin-top: 2rem;
+    }
+    
+    .stat-item, .info-item {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.5rem;
+    }
+    
+    .info-item {
+        align-items: center;
+    }
+    
+    .info-label {
+        min-width: auto;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Cultivation Progress Chart
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('cultivationChart').getContext('2d');
+    
+    // Sample cultivation progress data - in real app, this would come from backend
+    const cultivationData = {
+        labels: ['7 ngày trước', '6 ngày', '5 ngày', '4 ngày', '3 ngày', '2 ngày', 'Hôm nay'],
+        datasets: [{
+            label: 'Linh Lực',
+            data: [
+                {{ current_user.spiritual_power - 6000 }},
+                {{ current_user.spiritual_power - 5000 }},
+                {{ current_user.spiritual_power - 4000 }},
+                {{ current_user.spiritual_power - 2500 }},
+                {{ current_user.spiritual_power - 1800 }},
+                {{ current_user.spiritual_power - 800 }},
+                {{ current_user.spiritual_power }}
+            ],
+            borderColor: 'rgba(255, 215, 0, 1)',
+            backgroundColor: 'rgba(255, 215, 0, 0.1)',
+            borderWidth: 2,
+            fill: true,
+            tension: 0.4
+        }]
+    };
+    
+    new Chart(ctx, {
+        type: 'line',
+        data: cultivationData,
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Tiến Độ Tu Luyện 7 Ngày Qua',
+                    color: '#4facfe',
+                    font: {
+                        size: 14,
+                        weight: 'bold'
+                    }
+                },
+                legend: {
+                    labels: {
+                        color: '#e0e6ed'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#e0e6ed',
+                        maxRotation: 45
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    ticks: {
+                        color: '#ffd700',
+                        callback: function(value) {
+                            return value.toLocaleString();
+                        }
+                    },
+                    grid: {
+                        color: 'rgba(255, 215, 0, 0.1)'
+                    }
+                }
+            },
+            elements: {
+                point: {
+                    backgroundColor: '#ffd700',
+                    borderColor: '#ffd700',
+                    borderWidth: 2,
+                    radius: 4,
+                    hoverRadius: 6
+                }
+            }
+        }
+    });
+});
+
+// Password confirmation validation
+document.addEventListener('DOMContentLoaded', function() {
+    const newPassword = document.getElementById('newPassword');
+    const confirmPassword = document.getElementById('confirmPassword');
+    
+    function validatePassword() {
+        if (newPassword.value !== confirmPassword.value) {
+            confirmPassword.setCustomValidity('Mật khẩu xác nhận không khớp');
+        } else {
+            confirmPassword.setCustomValidity('');
+        }
+    }
+    
+    if (newPassword && confirmPassword) {
+        newPassword.addEventListener('change', validatePassword);
+        confirmPassword.addEventListener('keyup', validatePassword);
+    }
+});
+
+// Animation for stats numbers
+document.addEventListener('DOMContentLoaded', function() {
+    const statNumbers = document.querySelectorAll('.stat-info h5, .record-content p');
+    
+    const animateNumbers = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const text = entry.target.textContent;
+                const number = parseInt(text.replace(/[^\d]/g, ''));
+                
+                if (number && number > 0) {
+                    let current = 0;
+                    const increment = number / 30;
+                    
+                    const timer = setInterval(() => {
+                        current += increment;
+                        if (current >= number) {
+                            entry.target.textContent = text;
+                            clearInterval(timer);
+                        } else {
+                            entry.target.textContent = text.replace(number.toString(), Math.floor(current).toLocaleString());
+                        }
+                    }, 50);
+                }
+                
+                observer.unobserve(entry.target);
+            }
+        });
+    };
+    
+    const observer = new IntersectionObserver(animateNumbers);
+    statNumbers.forEach(number => observer.observe(number));
+});
+</script>
+{% endblock %}

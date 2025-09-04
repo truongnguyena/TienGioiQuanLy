@@ -1,0 +1,294 @@
+{% extends "base.html" %}
+
+{% block title %}Điều Khiển - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- User Profile Card -->
+        <div class="col-lg-4 mb-4">
+            <div class="mystical-card h-100">
+                <div class="card-header text-center">
+                    <h4 class="text-golden mb-0">
+                        <i class="fas fa-user-circle me-2"></i>
+                        {{ current_user.dao_name or current_user.username }}
+                    </h4>
+                    <p class="text-celestial mb-0">{{ current_user.cultivation_level }}</p>
+                </div>
+                
+                <div class="card-body">
+                    <!-- Cultivation Progress -->
+                    <div class="cultivation-progress mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-light">Linh Lực Tu Luyện</span>
+                            <span class="text-golden">{{ current_user.spiritual_power }}</span>
+                        </div>
+                        <div class="progress mystical-progress">
+                            <div class="progress-bar progress-bar-golden" style="width: {{ (current_user.spiritual_power % 1000) / 10 }}%"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Resources -->
+                    <div class="resources-grid">
+                        <div class="resource-item">
+                            <i class="fas fa-gem text-celestial"></i>
+                            <span>{{ current_user.spiritual_stones }}</span>
+                            <small>Linh Thạch</small>
+                        </div>
+                        <div class="resource-item">
+                            <i class="fas fa-pills text-purple"></i>
+                            <span>{{ current_user.pills_count }}</span>
+                            <small>Đan Dược</small>
+                        </div>
+                        <div class="resource-item">
+                            <i class="fas fa-shield-alt text-golden"></i>
+                            <span>{{ current_user.artifacts_count }}</span>
+                            <small>Pháp Bảo</small>
+                        </div>
+                        <div class="resource-item">
+                            <i class="fas fa-star text-celestial"></i>
+                            <span>{{ current_user.reputation }}</span>
+                            <small>Uy Tín</small>
+                        </div>
+                    </div>
+                    
+                    <!-- Quick Actions -->
+                    <div class="mt-4">
+                        <button class="btn btn-golden w-100 mb-2 mystical-btn" onclick="cultivate()">
+                            <i class="fas fa-meditation me-2"></i>Tu Luyện
+                        </button>
+                        
+                        {% if not current_user.guild_id %}
+                        <button class="btn btn-purple w-100 mystical-btn" data-bs-toggle="modal" data-bs-target="#createGuildModal">
+                            <i class="fas fa-plus me-2"></i>Tạo Bang Hội
+                        </button>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- AI Fortune & Weather -->
+        <div class="col-lg-8 mb-4">
+            <div class="row">
+                <!-- Fortune Card -->
+                <div class="col-md-6 mb-4">
+                    <div class="mystical-card h-100">
+                        <div class="card-header">
+                            <h5 class="text-celestial mb-0">
+                                <i class="fas fa-crystal-ball me-2"></i>Thiên Cơ Dự Đoán
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="fortune-text">
+                                <i class="fas fa-quote-left text-golden opacity-50"></i>
+                                <p class="text-light mt-2">{{ fortune }}</p>
+                                <i class="fas fa-quote-right text-golden opacity-50 float-end"></i>
+                            </div>
+                            <div class="mt-3">
+                                <h6 class="text-purple">Lời Khuyên AI:</h6>
+                                <ul class="advice-list">
+                                    {% for advice_item in advice %}
+                                    <li class="text-light opacity-75">{{ advice_item }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Weather Card -->
+                <div class="col-md-6 mb-4">
+                    <div class="mystical-card h-100">
+                        <div class="card-header">
+                            <h5 class="text-golden mb-0">
+                                <i class="fas fa-cloud-sun me-2"></i>Thời Tiết Linh Khí
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="weather-current mb-3">
+                                <h6 class="text-celestial">Hiện Tại:</h6>
+                                <p class="text-light">{{ weather.current }}</p>
+                            </div>
+                            <div class="weather-tomorrow mb-3">
+                                <h6 class="text-celestial">Ngày Mai:</h6>
+                                <p class="text-light">{{ weather.tomorrow }}</p>
+                            </div>
+                            <div class="weather-weekly">
+                                <h6 class="text-celestial">Xu Hướng Tuần:</h6>
+                                <p class="text-light">{{ weather.weekly_trend }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <!-- Guild Info -->
+        <div class="col-lg-6 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-purple mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>
+                        {% if guild %}Thông Tin Bang Hội{% else %}Chưa Có Bang Hội{% endif %}
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if guild %}
+                        <h6 class="text-golden">{{ guild.name }}</h6>
+                        <p class="text-light">{{ guild.description }}</p>
+                        <div class="guild-stats">
+                            <div class="stat-row">
+                                <span>Cấp Độ:</span>
+                                <span class="text-celestial">{{ guild.level }}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>Thành Viên:</span>
+                                <span class="text-celestial">{{ guild.members|length }}</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>Kho Bạc:</span>
+                                <span class="text-golden">{{ guild.treasury }} linh thạch</span>
+                            </div>
+                            <div class="stat-row">
+                                <span>Lãnh Thổ:</span>
+                                <span class="text-purple">{{ guild.territory_count }}</span>
+                            </div>
+                        </div>
+                        <div class="mt-3">
+                            <a href="{{ url_for('guild_management') }}" class="btn btn-purple mystical-btn">
+                                <i class="fas fa-cog me-2"></i>Quản Lý Bang Hội
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-users text-muted mb-3" style="font-size: 3rem;"></i>
+                            <p class="text-light mb-3">Bạn chưa tham gia bang hội nào.</p>
+                            <button class="btn btn-celestial mystical-btn me-2" data-bs-toggle="modal" data-bs-target="#createGuildModal">
+                                <i class="fas fa-plus me-2"></i>Tạo Bang Hội
+                            </button>
+                            <a href="{{ url_for('guild_management') }}" class="btn btn-outline-celestial mystical-btn">
+                                <i class="fas fa-search me-2"></i>Tìm Bang Hội
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Recent Activity -->
+        <div class="col-lg-6 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-comments me-2"></i>Hoạt Động Gần Đây
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="activity-list" style="max-height: 300px; overflow-y: auto;">
+                        {% for message in recent_messages %}
+                        <div class="activity-item">
+                            <div class="activity-user">
+                                <strong class="text-golden">{{ message.user.dao_name or message.user.username }}</strong>
+                                <small class="text-muted">{{ message.created_at.strftime('%H:%M') }}</small>
+                            </div>
+                            <div class="activity-content text-light">{{ message.content }}</div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('community') }}" class="btn btn-celestial w-100 mystical-btn">
+                            <i class="fas fa-comments me-2"></i>Xem Tất Cả
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Available Expeditions -->
+    {% if available_expeditions %}
+    <div class="row">
+        <div class="col-12 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-map-marked-alt me-2"></i>Đạo Lữ Có Thể Tham Gia
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for expedition in available_expeditions %}
+                        <div class="col-lg-6 mb-3">
+                            <div class="expedition-card">
+                                <div class="expedition-header">
+                                    <h6 class="text-purple">{{ expedition.name }}</h6>
+                                    <span class="difficulty-badge difficulty-{{ expedition.difficulty_level }}">
+                                        Cấp {{ expedition.difficulty_level }}
+                                    </span>
+                                </div>
+                                <p class="text-light mb-2">{{ expedition.description[:100] }}...</p>
+                                <div class="expedition-info">
+                                    <small class="text-celestial">
+                                        <i class="fas fa-map-marker-alt me-1"></i>{{ expedition.destination }}
+                                    </small>
+                                    <small class="text-golden ms-3">
+                                        <i class="fas fa-users me-1"></i>{{ expedition.participants|length }}/{{ expedition.max_participants }}
+                                    </small>
+                                </div>
+                                <button class="btn btn-purple btn-sm mt-2 mystical-btn" onclick="joinExpedition({{ expedition.id }})">
+                                    <i class="fas fa-plus me-1"></i>Tham Gia
+                                </button>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="text-center mt-3">
+                        <a href="{{ url_for('expeditions') }}" class="btn btn-outline-golden mystical-btn">
+                            <i class="fas fa-eye me-2"></i>Xem Tất Cả Đạo Lữ
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create Guild Modal -->
+<div class="modal fade" id="createGuildModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-plus me-2"></i>Tạo Bang Hội Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createGuildForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Tên Bang Hội</label>
+                        <input type="text" class="form-control mystical-input" name="name" required>
+                        <div class="form-text text-light opacity-75">Chi phí: 10,000 linh thạch</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mô Tả</label>
+                        <textarea class="form-control mystical-input" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-golden mystical-btn" onclick="createGuild()">Tạo Bang Hội</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Thiên Đạo Cộng Đồng Tu Tiên{% endblock %}</title>
+    
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="mystical-body">
+    <!-- Mystical Background -->
+    <div class="mystical-bg">
+        <div class="floating-particles"></div>
+    </div>
+    
+    <!-- Mobile Header -->
+    <div class="mobile-header d-lg-none fixed-top">
+        <div class="d-flex justify-content-between align-items-center p-3">
+            <a class="navbar-brand fw-bold text-golden" href="{{ url_for('index') }}">
+                <i class="fas fa-dragon me-2"></i>
+                <span class="brand-text">天道 Tu Tiên</span>
+            </a>
+            <button class="btn btn-outline-golden btn-sm" type="button" data-bs-toggle="offcanvas" data-bs-target="#sidebarNav">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Vertical Sidebar -->
+    <div class="mystical-sidebar offcanvas-lg offcanvas-start" tabindex="-1" id="sidebarNav">
+        <!-- Sidebar Header -->
+        <div class="sidebar-header">
+            <a class="sidebar-brand" href="{{ url_for('index') }}">
+                <i class="fas fa-dragon"></i>
+                <div class="brand-content">
+                    <span class="brand-title">天道</span>
+                    <span class="brand-subtitle">Tu Tiên Cộng Đồng</span>
+                </div>
+            </a>
+            <button type="button" class="btn-close d-lg-none" data-bs-dismiss="offcanvas" data-bs-target="#sidebarNav"></button>
+        </div>
+
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar-nav">
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('index') }}">
+                        <i class="fas fa-home"></i>
+                        <span class="nav-text">Trang Chủ</span>
+                    </a>
+                </li>
+                
+                {% if current_user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('dashboard') }}">
+                            <i class="fas fa-tachometer-alt"></i>
+                            <span class="nav-text">Điều Khiển</span>
+                        </a>
+                    </li>
+                    
+                    <!-- Management Section -->
+                    <li class="nav-section">
+                        <span class="section-title">
+                            <i class="fas fa-cog"></i> Quản Lý
+                        </span>
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('world_management') }}">
+                                    <i class="fas fa-globe"></i>
+                                    <span class="nav-text">Thế Giới</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('guild_management') }}">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span class="nav-text">Bang Hội</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('expeditions') }}">
+                                    <i class="fas fa-map-marked-alt"></i>
+                                    <span class="nav-text">Đạo Lữ</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                    
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rankings') }}">
+                            <i class="fas fa-trophy"></i>
+                            <span class="nav-text">Xếp Hạng</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('community') }}">
+                            <i class="fas fa-users"></i>
+                            <span class="nav-text">Cộng Đồng</span>
+                        </a>
+                    </li>
+                    
+                    <!-- User Section -->
+                    <li class="nav-section mt-auto">
+                        <span class="section-title">
+                            <i class="fas fa-user-circle"></i> {{ current_user.dao_name or current_user.username }}
+                        </span>
+                        <ul class="nav flex-column ms-3">
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ url_for('profile') }}">
+                                    <i class="fas fa-user"></i>
+                                    <span class="nav-text">Hồ Sơ</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link text-danger" href="{{ url_for('logout') }}">
+                                    <i class="fas fa-sign-out-alt"></i>
+                                    <span class="nav-text">Đăng Xuất</span>
+                                </a>
+                            </li>
+                        </ul>
+                    </li>
+                {% else %}
+                    <li class="nav-item mt-auto">
+                        <a class="nav-link" href="{{ url_for('auth') }}">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="nav-text">Đăng Nhập</span>
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    
+    <!-- Main Content -->
+    <main class="main-content with-sidebar">
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="container mt-3">
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ 'danger' if category == 'error' else category }} alert-dismissible fade show mystical-alert" role="alert">
+                            <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }} me-2"></i>
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    <footer class="mystical-footer mt-5">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5 class="text-golden"><i class="fas fa-dragon me-2"></i>Thiên Đạo Tu Tiên</h5>
+                    <p class="text-light opacity-75">Cộng đồng tu tiên huyền bí với AI thông minh và hệ thống sát nhập thế giới.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="social-links">
+                        <a href="#" class="text-golden me-3"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-golden me-3"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="text-golden"><i class="fab fa-discord"></i></a>
+                    </div>
+                    <p class="text-light opacity-75 mt-2">&copy; 2025 Thiên Đạo Cộng Đồng. Tất cả quyền được bảo lưu.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

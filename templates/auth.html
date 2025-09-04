@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}Đăng Nhập - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<section class="auth-section">
+    <div class="container">
+        <div class="row justify-content-center min-vh-100 align-items-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="mystical-card p-5">
+                    <div class="text-center mb-4">
+                        <h1 class="text-golden mb-3">
+                            <i class="fas fa-dragon me-2"></i>
+                            Gia Nhập Thiên Đạo
+                        </h1>
+                        <p class="text-light opacity-75">Bắt đầu hành trình tu tiên của bạn</p>
+                    </div>
+                    
+                    <!-- Login/Register Tabs -->
+                    <ul class="nav nav-pills nav-justified mb-4 mystical-tabs" id="authTabs">
+                        <li class="nav-item">
+                            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#login-tab">
+                                <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
+                            </button>
+                        </li>
+                        <li class="nav-item">
+                            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#register-tab">
+                                <i class="fas fa-user-plus me-2"></i>Đăng Ký
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content">
+                        <!-- Login Tab -->
+                        <div class="tab-pane fade show active" id="login-tab">
+                            <form method="POST" class="mystical-form">
+                                <input type="hidden" name="action" value="login">
+                                
+                                <div class="mb-4">
+                                    <label for="login-username" class="form-label text-golden">
+                                        <i class="fas fa-user me-2"></i>Tên Đăng Nhập
+                                    </label>
+                                    <input type="text" class="form-control mystical-input" id="login-username" 
+                                           name="username" required>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="login-password" class="form-label text-golden">
+                                        <i class="fas fa-lock me-2"></i>Mật Khẩu
+                                    </label>
+                                    <input type="password" class="form-control mystical-input" id="login-password" 
+                                           name="password" required>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-golden w-100 mystical-btn">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Đăng Nhập
+                                </button>
+                            </form>
+                        </div>
+                        
+                        <!-- Register Tab -->
+                        <div class="tab-pane fade" id="register-tab">
+                            <form method="POST" class="mystical-form">
+                                <input type="hidden" name="action" value="register">
+                                
+                                <div class="mb-3">
+                                    <label for="register-username" class="form-label text-golden">
+                                        <i class="fas fa-user me-2"></i>Tên Đăng Nhập
+                                    </label>
+                                    <input type="text" class="form-control mystical-input" id="register-username" 
+                                           name="username" required>
+                                    <div class="form-text text-light opacity-75">Từ 3-20 ký tự, chỉ chứa chữ cái, số và dấu gạch dưới</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="register-email" class="form-label text-golden">
+                                        <i class="fas fa-envelope me-2"></i>Email
+                                    </label>
+                                    <input type="email" class="form-control mystical-input" id="register-email" 
+                                           name="email" required>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="register-dao-name" class="form-label text-celestial">
+                                        <i class="fas fa-signature me-2"></i>Đạo Hiệu (Tùy Chọn)
+                                    </label>
+                                    <input type="text" class="form-control mystical-input" id="register-dao-name" 
+                                           name="dao_name" placeholder="VD: Thiên Kiếm Tử, Linh Vũ Đạo Nhân...">
+                                    <div class="form-text text-light opacity-75">Tên gọi của bạn trong thế giới tu tiên</div>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="register-password" class="form-label text-golden">
+                                        <i class="fas fa-lock me-2"></i>Mật Khẩu
+                                    </label>
+                                    <input type="password" class="form-control mystical-input" id="register-password" 
+                                           name="password" required>
+                                    <div class="form-text text-light opacity-75">Ít nhất 6 ký tự</div>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-purple w-100 mystical-btn">
+                                    <i class="fas fa-user-plus me-2"></i>Bắt Đầu Tu Tiên
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <!-- Cultivation Stages Info -->
+                    <div class="mt-5 pt-4 border-top border-secondary">
+                        <h5 class="text-center text-celestial mb-3">
+                            <i class="fas fa-info-circle me-2"></i>Các Cảnh Giới Tu Luyện
+                        </h5>
+                        <div class="row text-center">
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-basic">Luyện Khí</small>
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-basic">Trúc Cơ</small>
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-intermediate">Kết Đan</small>
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-intermediate">Nguyên Anh</small>
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-advanced">Hóa Thần</small>
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-advanced">Luyện Hư</small>
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-master">Hợp Thể</small>
+                            </div>
+                            <div class="col-6 col-md-3 mb-2">
+                                <small class="cultivation-stage stage-immortal">Đại Thừa</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.auth-section {
+    background: linear-gradient(135deg, rgba(74, 0, 224, 0.3), rgba(142, 45, 226, 0.3));
+    position: relative;
+    overflow: hidden;
+}
+
+.auth-section::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: url('https://pixabay.com/get/g4b271031e908c817644d57d252a32969be50b23ac223da3e50cfdbb4ba5bea1f338349f6af97c2b66a71b1ca52b543d6db4f787fc19f59150506025683f355fa_1280.jpg') center/cover;
+    opacity: 0.1;
+    z-index: -1;
+}
+
+.mystical-tabs .nav-link {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: #ffd700;
+    transition: all 0.3s ease;
+}
+
+.mystical-tabs .nav-link.active {
+    background: linear-gradient(135deg, #ffd700, #ffed4e);
+    color: #1a1a2e;
+    border-color: #ffd700;
+}
+
+.cultivation-stage {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+}
+
+.stage-basic { background: rgba(108, 117, 125, 0.3); color: #6c757d; }
+.stage-intermediate { background: rgba(0, 123, 255, 0.3); color: #007bff; }
+.stage-advanced { background: rgba(220, 53, 69, 0.3); color: #dc3545; }
+.stage-master { background: rgba(255, 193, 7, 0.3); color: #ffc107; }
+.stage-immortal { background: rgba(142, 45, 226, 0.3); color: #8e2de2; }
+</style>
+{% endblock %}

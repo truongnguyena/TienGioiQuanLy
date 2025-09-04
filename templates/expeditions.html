@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block title %}Đạo Lữ - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header mb-4">
+                <h1 class="text-celestial">
+                    <i class="fas fa-map-marked-alt me-3"></i>Đạo Lữ Huyền Bí
+                </h1>
+                <p class="text-light opacity-75">Khám phá bí cảnh, thu thập tài nguyên và trải nghiệm những cuộc phiêu lưu kỳ thú</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-compass text-celestial" style="font-size: 2.5rem;"></i>
+                    <h3 class="text-purple mt-2">{{ available_expeditions|length }}</h3>
+                    <p class="text-light">Có Thể Tham Gia</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-running text-golden" style="font-size: 2.5rem;"></i>
+                    <h3 class="text-purple mt-2">{{ active_expeditions|length }}</h3>
+                    <p class="text-light">Đang Diễn Ra</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <i class="fas fa-user-check text-purple" style="font-size: 2.5rem;"></i>
+                    <h3 class="text-purple mt-2">{{ user_expeditions|length }}</h3>
+                    <p class="text-light">Đã Tham Gia</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3">
+            <div class="mystical-card text-center">
+                <div class="card-body">
+                    <button class="btn btn-golden mystical-btn w-100" data-bs-toggle="modal" data-bs-target="#createExpeditionModal">
+                        <i class="fas fa-plus me-2"></i>Tạo Đạo Lữ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Available Expeditions -->
+        <div class="col-lg-8 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-compass me-2"></i>Đạo Lữ Có Thể Tham Gia
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 600px; overflow-y: auto;">
+                    {% if available_expeditions %}
+                        {% for expedition in available_expeditions %}
+                        <div class="expedition-card mb-4">
+                            <div class="expedition-header">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h5 class="text-purple mb-2">{{ expedition.name }}</h5>
+                                        <div class="expedition-badges mb-2">
+                                            <span class="difficulty-badge difficulty-{{ expedition.difficulty_level }}">
+                                                Cấp {{ expedition.difficulty_level }}
+                                            </span>
+                                            <span class="duration-badge ms-2">
+                                                <i class="fas fa-clock me-1"></i>{{ expedition.duration_hours }}h
+                                            </span>
+                                            <span class="participants-badge ms-2">
+                                                <i class="fas fa-users me-1"></i>{{ expedition.participants|length }}/{{ expedition.max_participants }}
+                                            </span>
+                                        </div>
+                                    </div>
+                                    <div class="expedition-actions">
+                                        <button class="btn btn-celestial mystical-btn" onclick="joinExpedition({{ expedition.id }})">
+                                            <i class="fas fa-plus me-2"></i>Tham Gia
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="expedition-content">
+                                <p class="text-light mb-3">{{ expedition.description }}</p>
+
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <h6 class="text-celestial mb-2">
+                                            <i class="fas fa-map-marker-alt me-1"></i>Điểm Đến
+                                        </h6>
+                                        <p class="text-light">{{ expedition.destination }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="text-celestial mb-2">
+                                            <i class="fas fa-shield-alt me-1"></i>Yêu Cầu
+                                        </h6>
+                                        <p class="text-light">{{ expedition.min_cultivation or "Không yêu cầu" }}</p>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <h6 class="text-celestial mb-2">
+                                            <i class="fas fa-gift me-1"></i>Phần Thưởng
+                                        </h6>
+                                        <div class="reward-list">
+                                            {% if expedition.potential_rewards %}
+                                                {% set rewards = expedition.potential_rewards|from_json %}
+                                                {% for reward in rewards %}
+                                                <span class="reward-item">{{ reward }}</span>
+                                                {% endfor %}
+                                            {% else %}
+                                            <span class="text-golden">Linh thạch, đan dược</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Participants -->
+                                {% if expedition.participants %}
+                                <div class="participants-section mt-3 pt-3 border-top border-secondary">
+                                    <h6 class="text-purple mb-2">Thành Viên Đã Tham Gia:</h6>
+                                    <div class="participants-list">
+                                        {% for participant in expedition.participants %}
+                                        <div class="participant-item">
+                                            <span class="text-golden">{{ participant.user.dao_name or participant.user.username }}</span>
+                                            <small class="text-muted ms-2">{{ participant.user.cultivation_level }}</small>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-compass text-muted mb-3" style="font-size: 4rem;"></i>
+                            <h5 class="text-light">Không Có Đạo Lữ Khả Dụng</h5>
+                            <p class="text-muted mb-4">Hiện tại không có đạo lữ nào đang tuyển thành viên.</p>
+                            <button class="btn btn-golden mystical-btn" data-bs-toggle="modal" data-bs-target="#createExpeditionModal">
+                                <i class="fas fa-plus me-2"></i>Tạo Đạo Lữ Mới
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- My Expeditions & Active -->
+        <div class="col-lg-4 mb-4">
+            <!-- Active Expeditions -->
+            <div class="mystical-card mb-4">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-running me-2"></i>Đang Diễn Ra
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                    {% if active_expeditions %}
+                        {% for expedition in active_expeditions %}
+                        <div class="active-expedition-item mb-3">
+                            <h6 class="text-purple">{{ expedition.name }}</h6>
+                            <div class="progress mystical-progress mb-2">
+                                <div class="progress-bar progress-bar-golden" style="width: 60%"></div>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <small class="text-light">{{ expedition.destination }}</small>
+                                <small class="text-celestial">{{ expedition.participants|length }} thành viên</small>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-running text-muted mb-2" style="font-size: 2rem;"></i>
+                            <p class="text-light">Không có đạo lữ đang diễn ra</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- My Expeditions History -->
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-history me-2"></i>Lịch Sử Đạo Lữ
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 300px; overflow-y: auto;">
+                    {% if user_expeditions %}
+                        {% for expedition in user_expeditions %}
+                        <div class="expedition-history-item mb-3">
+                            <div class="d-flex justify-content-between align-items-start">
+                                <div>
+                                    <h6 class="text-light mb-1">{{ expedition.name }}</h6>
+                                    <small class="text-muted">{{ expedition.destination }}</small>
+                                </div>
+                                <span class="status-badge status-{{ expedition.status|replace(' ', '-')|lower }}">
+                                    {{ expedition.status }}
+                                </span>
+                            </div>
+                            
+                            {% for participant in expedition.participants %}
+                                {% if participant.user_id == current_user.id %}
+                                <div class="mt-2">
+                                    <small class="text-golden">Đóng góp: {{ participant.contribution_points }} điểm</small>
+                                </div>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="text-center py-4">
+                            <i class="fas fa-history text-muted mb-2" style="font-size: 2rem;"></i>
+                            <p class="text-light">Chưa tham gia đạo lữ nào</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Expedition Modal -->
+<div class="modal fade" id="createExpeditionModal" tabindex="-1">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-plus me-2"></i>Tạo Đạo Lữ Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form method="POST" action="{{ url_for('expeditions') }}">
+                    <input type="hidden" name="action" value="create_expedition">
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Tên Đạo Lữ</label>
+                            <input type="text" class="form-control mystical-input" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Điểm Đến</label>
+                            <select class="form-control mystical-input" name="destination" required>
+                                <option value="">Chọn điểm đến</option>
+                                <option value="Rừng Tre Xanh">Rừng Tre Xanh</option>
+                                <option value="Thung Lũng Sương Mù">Thung Lũng Sương Mù</option>
+                                <option value="Sa Mạc Cát Vàng">Sa Mạc Cát Vàng</option>
+                                <option value="Rừng Quỷ Dữ">Rừng Quỷ Dữ</option>
+                                <option value="Thiên Đình">Thiên Đình</option>
+                                <option value="Suối Linh Tuyền">Suối Linh Tuyền</option>
+                                <option value="Hang Dơi Máu">Hang Dơi Máu</option>
+                                <option value="Đền Cổ Bỏ Hoang">Đền Cổ Bỏ Hoang</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mô Tả</label>
+                        <textarea class="form-control mystical-input" name="description" rows="3" required></textarea>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-celestial">Mức Độ Khó (1-5)</label>
+                            <input type="range" class="form-range" name="difficulty_level" min="1" max="5" value="3" oninput="updateRangeValue(this, 'difficulty_value')">
+                            <div class="text-center text-golden" id="difficulty_value">3</div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-celestial">Số Thành Viên Tối Đa</label>
+                            <input type="number" class="form-control mystical-input" name="max_participants" min="2" max="10" value="5" required>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label text-celestial">Thời Gian (giờ)</label>
+                            <input type="number" class="form-control mystical-input" name="duration_hours" min="1" max="168" value="24" required>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Yêu Cầu Tu Luyện Tối Thiểu</label>
+                            <select class="form-control mystical-input" name="min_cultivation">
+                                <option value="">Không yêu cầu</option>
+                                <option value="Luyện Khí">Luyện Khí</option>
+                                <option value="Trúc Cơ">Trúc Cơ</option>
+                                <option value="Kết Đan">Kết Đan</option>
+                                <option value="Nguyên Anh">Nguyên Anh</option>
+                                <option value="Hóa Thần">Hóa Thần</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Vật Phẩm Yêu Cầu</label>
+                            <input type="text" class="form-control mystical-input" name="required_items" placeholder="VD: Bùa hộ mạng, Đan dược hồi phục">
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Phần Thưởng Tiềm Năng</label>
+                        <textarea class="form-control mystical-input" name="potential_rewards" rows="2" placeholder="VD: Linh thạch, Đan dược quý, Pháp bảo"></textarea>
+                    </div>
+
+                    <!-- AI Route Generation -->
+                    <div class="ai-route-section p-3 bg-dark bg-opacity-25 rounded mb-3">
+                        <h6 class="text-golden mb-2">
+                            <i class="fas fa-brain me-2"></i>AI Tạo Lộ Trình Tự Động
+                        </h6>
+                        <button type="button" class="btn btn-purple mystical-btn btn-sm" onclick="generateRoute()">
+                            <i class="fas fa-magic me-2"></i>Tạo Lộ Trình Thông Minh
+                        </button>
+                        <div id="generated-route" class="mt-2" style="display: none;">
+                            <div class="route-info"></div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" form="createExpeditionForm" class="btn btn-golden mystical-btn">Tạo Đạo Lữ</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.expedition-card {
+    background: rgba(79, 172, 254, 0.1);
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    border-radius: 15px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.expedition-card:hover {
+    background: rgba(79, 172, 254, 0.15);
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.difficulty-badge {
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.difficulty-1 { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+.difficulty-2 { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.difficulty-3 { background: rgba(255, 136, 0, 0.2); color: #ff8800; }
+.difficulty-4 { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+.difficulty-5 { background: rgba(142, 45, 226, 0.2); color: var(--purple); }
+
+.duration-badge, .participants-badge {
+    background: rgba(255, 255, 255, 0.1);
+    color: var(--text-light);
+    padding: 0.3rem 0.6rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+}
+
+.reward-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.reward-item {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--golden);
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+}
+
+.participants-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.participant-item {
+    background: rgba(142, 45, 226, 0.2);
+    color: var(--text-light);
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+}
+
+.active-expedition-item {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.active-expedition-item:hover {
+    background: rgba(255, 215, 0, 0.15);
+}
+
+.expedition-history-item {
+    background: rgba(108, 117, 125, 0.1);
+    border-radius: 8px;
+    padding: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.expedition-history-item:hover {
+    background: rgba(108, 117, 125, 0.15);
+}
+
+.status-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 10px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-tuyển-thành-viên { background: rgba(79, 172, 254, 0.2); color: var(--celestial); }
+.status-đang-diễn-ra { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+.status-hoàn-thành { background: rgba(40, 167, 69, 0.2); color: #28a745; }
+.status-thất-bại { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+
+.ai-route-section {
+    border: 1px solid rgba(142, 45, 226, 0.3);
+}
+
+.route-info {
+    background: rgba(15, 15, 35, 0.5);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.route-waypoint {
+    background: rgba(79, 172, 254, 0.1);
+    color: var(--celestial);
+    padding: 0.25rem 0.5rem;
+    border-radius: 8px;
+    margin: 0.25rem;
+    display: inline-block;
+    font-size: 0.85rem;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/expeditions.js') }}"></script>
+{% endblock %}

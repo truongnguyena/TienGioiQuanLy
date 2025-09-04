@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+
+{% block title %}Xếp Hạng - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header mb-4">
+                <h1 class="text-golden">
+                    <i class="fas fa-trophy me-3"></i>Bảng Xếp Hạng Thiên Đạo
+                </h1>
+                <p class="text-light opacity-75">Danh hiệu và thứ hạng của những tu sĩ xuất sắc nhất</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ranking Tabs -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <ul class="nav nav-pills nav-justified mystical-tabs" id="rankingTabs">
+                <li class="nav-item">
+                    <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#power-rankings">
+                        <i class="fas fa-fist-raised me-2"></i>Sức Mạnh
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#reputation-rankings">
+                        <i class="fas fa-star me-2"></i>Uy Tín
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#guild-rankings">
+                        <i class="fas fa-shield-alt me-2"></i>Bang Hội
+                    </button>
+                </li>
+                <li class="nav-item">
+                    <button class="nav-link" data-bs-toggle="pill" data-bs-target="#achievements-tab">
+                        <i class="fas fa-medal me-2"></i>Thành Tựu
+                    </button>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="tab-content">
+        <!-- Power Rankings -->
+        <div class="tab-pane fade show active" id="power-rankings">
+            <div class="row">
+                <!-- Top 3 Power Rankings -->
+                <div class="col-12 mb-4">
+                    <div class="mystical-card">
+                        <div class="card-body">
+                            <div class="row">
+                                {% for i in range(3) %}
+                                    {% if power_rankings|length > i %}
+                                    {% set user = power_rankings[i] %}
+                                    <div class="col-md-4 mb-3">
+                                        <div class="top-ranking-card rank-{{ i + 1 }}">
+                                            <div class="rank-icon">
+                                                {% if i == 0 %}
+                                                <i class="fas fa-crown text-warning"></i>
+                                                {% elif i == 1 %}
+                                                <i class="fas fa-medal text-secondary"></i>
+                                                {% else %}
+                                                <i class="fas fa-award text-warning"></i>
+                                                {% endif %}
+                                                <span class="rank-number">{{ i + 1 }}</span>
+                                            </div>
+                                            <h5 class="text-golden mt-3">{{ user.dao_name or user.username }}</h5>
+                                            <p class="text-celestial mb-2">{{ user.cultivation_level }}</p>
+                                            <div class="power-display">
+                                                <span class="power-number">{{ "{:,}".format(user.spiritual_power) }}</span>
+                                                <small class="text-light d-block">Linh Lực</small>
+                                            </div>
+                                            {% if user.guild %}
+                                            <p class="text-purple mt-2">{{ user.guild.name }}</p>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                    {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Detailed Power Rankings -->
+                <div class="col-12">
+                    <div class="mystical-card">
+                        <div class="card-header">
+                            <h5 class="text-celestial mb-0">
+                                <i class="fas fa-list me-2"></i>Bảng Xếp Hạng Chi Tiết - Sức Mạnh
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark mystical-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Hạng</th>
+                                            <th>Thiên Đạo</th>
+                                            <th>Cảnh Giới</th>
+                                            <th>Linh Lực</th>
+                                            <th>Bang Hội</th>
+                                            <th>Uy Tín</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in power_rankings %}
+                                        <tr class="{{ 'current-user-row' if user.id == current_user.id else '' }}">
+                                            <td>
+                                                <span class="rank-badge rank-{{ loop.index if loop.index <= 3 else 'other' }}">
+                                                    {{ loop.index }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="user-info">
+                                                    <strong class="text-golden">{{ user.dao_name or user.username }}</strong>
+                                                    {% if user.id == current_user.id %}
+                                                    <span class="badge bg-info ms-2">Bạn</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="cultivation-badge">{{ user.cultivation_level }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="power-text text-purple">{{ "{:,}".format(user.spiritual_power) }}</span>
+                                            </td>
+                                            <td>
+                                                {% if user.guild %}
+                                                <span class="text-celestial">{{ user.guild.name }}</span>
+                                                {% else %}
+                                                <span class="text-muted">Độc Hành</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="text-golden">{{ user.reputation }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reputation Rankings -->
+        <div class="tab-pane fade" id="reputation-rankings">
+            <div class="row">
+                <div class="col-12">
+                    <div class="mystical-card">
+                        <div class="card-header">
+                            <h5 class="text-golden mb-0">
+                                <i class="fas fa-star me-2"></i>Bảng Xếp Hạng Uy Tín
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark mystical-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Hạng</th>
+                                            <th>Thiên Đạo</th>
+                                            <th>Uy Tín</th>
+                                            <th>Cảnh Giới</th>
+                                            <th>Bang Hội</th>
+                                            <th>Nghiệp Quả</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for user in reputation_rankings %}
+                                        <tr class="{{ 'current-user-row' if user.id == current_user.id else '' }}">
+                                            <td>
+                                                <span class="rank-badge rank-{{ loop.index if loop.index <= 3 else 'other' }}">
+                                                    {{ loop.index }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="user-info">
+                                                    <strong class="text-golden">{{ user.dao_name or user.username }}</strong>
+                                                    {% if user.id == current_user.id %}
+                                                    <span class="badge bg-info ms-2">Bạn</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <div class="reputation-display">
+                                                    <span class="text-golden">{{ user.reputation }}</span>
+                                                    <div class="reputation-stars">
+                                                        {% set star_count = (user.reputation // 1000) %}
+                                                        {% for i in range(5) %}
+                                                            {% if i < star_count %}
+                                                            <i class="fas fa-star text-warning"></i>
+                                                            {% else %}
+                                                            <i class="far fa-star text-muted"></i>
+                                                            {% endif %}
+                                                        {% endfor %}
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="cultivation-badge">{{ user.cultivation_level }}</span>
+                                            </td>
+                                            <td>
+                                                {% if user.guild %}
+                                                <span class="text-celestial">{{ user.guild.name }}</span>
+                                                {% else %}
+                                                <span class="text-muted">Độc Hành</span>
+                                                {% endif %}
+                                            </td>
+                                            <td>
+                                                <span class="karma-points {{ 'text-success' if user.karma_points >= 0 else 'text-danger' }}">
+                                                    {{ user.karma_points }}
+                                                </span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Guild Rankings -->
+        <div class="tab-pane fade" id="guild-rankings">
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <div class="mystical-card">
+                        <div class="card-header">
+                            <h5 class="text-purple mb-0">
+                                <i class="fas fa-shield-alt me-2"></i>Bảng Xếp Hạng Bang Hội
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-dark mystical-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Hạng</th>
+                                            <th>Bang Hội</th>
+                                            <th>Bang Chủ</th>
+                                            <th>Cấp Độ</th>
+                                            <th>Thành Viên</th>
+                                            <th>Lãnh Thổ</th>
+                                            <th>Kho Bạc</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for guild in guild_rankings %}
+                                        <tr class="{{ 'current-user-row' if current_user.guild and guild.id == current_user.guild.id else '' }}">
+                                            <td>
+                                                <span class="rank-badge rank-{{ loop.index if loop.index <= 3 else 'other' }}">
+                                                    {{ loop.index }}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <div class="guild-info">
+                                                    <strong class="text-golden">{{ guild.name }}</strong>
+                                                    {% if current_user.guild and guild.id == current_user.guild.id %}
+                                                    <span class="badge bg-info ms-2">Bang Hội Của Bạn</span>
+                                                    {% endif %}
+                                                </div>
+                                            </td>
+                                            <td>
+                                                <span class="text-celestial">
+                                                    {% for member in guild.members %}
+                                                        {% if member.id == guild.leader_id %}
+                                                            {{ member.dao_name or member.username }}
+                                                            {% break %}
+                                                        {% endif %}
+                                                    {% endfor %}
+                                                </span>
+                                            </td>
+                                            <td>
+                                                <span class="guild-level-badge">{{ guild.level }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-light">{{ guild.members|length }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-purple">{{ guild.territory_count }}</span>
+                                            </td>
+                                            <td>
+                                                <span class="text-golden">{{ "{:,}".format(guild.treasury) }}</span>
+                                            </td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guild Statistics Chart -->
+                <div class="col-12">
+                    <div class="mystical-card">
+                        <div class="card-header">
+                            <h5 class="text-celestial mb-0">
+                                <i class="fas fa-chart-bar me-2"></i>Thống Kê Bang Hội
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="guildStatsChart" height="400"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Achievements -->
+        <div class="tab-pane fade" id="achievements-tab">
+            <div class="row">
+                <div class="col-12">
+                    <div class="mystical-card">
+                        <div class="card-header">
+                            <h5 class="text-golden mb-0">
+                                <i class="fas fa-medal me-2"></i>Thành Tựu Gần Đây
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% if recent_achievements %}
+                            <div class="row">
+                                {% for achievement in recent_achievements %}
+                                <div class="col-lg-6 mb-4">
+                                    <div class="achievement-card rarity-{{ achievement.rarity }}">
+                                        <div class="achievement-header">
+                                            <div class="d-flex justify-content-between align-items-start">
+                                                <div>
+                                                    <h6 class="text-purple mb-1">{{ achievement.title }}</h6>
+                                                    <span class="achievement-rarity rarity-{{ achievement.rarity }}">
+                                                        {{ achievement.rarity.title() }}
+                                                    </span>
+                                                </div>
+                                                <div class="achievement-icon">
+                                                    {% if achievement.rarity == 'legendary' %}
+                                                    <i class="fas fa-crown text-warning"></i>
+                                                    {% elif achievement.rarity == 'rare' %}
+                                                    <i class="fas fa-gem text-primary"></i>
+                                                    {% else %}
+                                                    <i class="fas fa-medal text-secondary"></i>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <p class="achievement-desc text-light mt-2">{{ achievement.description }}</p>
+                                        
+                                        <div class="achievement-footer">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <span class="text-golden">{{ achievement.user.dao_name or achievement.user.username }}</span>
+                                                <small class="text-muted">{{ achievement.earned_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="text-center py-5">
+                                <i class="fas fa-medal text-muted mb-3" style="font-size: 4rem;"></i>
+                                <h5 class="text-light">Chưa Có Thành Tựu Gần Đây</h5>
+                                <p class="text-muted">Hãy tu luyện chăm chỉ để đạt được những thành tựu đầu tiên!</p>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.mystical-tabs .nav-link {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    color: var(--text-light);
+    transition: all 0.3s ease;
+    margin: 0 2px;
+    border-radius: 25px;
+}
+
+.mystical-tabs .nav-link.active {
+    background: linear-gradient(135deg, var(--golden), #ffed4e);
+    color: var(--darker-bg);
+    border-color: var(--golden);
+    font-weight: 600;
+}
+
+.top-ranking-card {
+    background: rgba(26, 26, 46, 0.8);
+    border: 2px solid;
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    position: relative;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.top-ranking-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+}
+
+.rank-1 { border-color: #ffd700; background: radial-gradient(circle at center, rgba(255, 215, 0, 0.1), rgba(26, 26, 46, 0.8)); }
+.rank-2 { border-color: #c0c0c0; background: radial-gradient(circle at center, rgba(192, 192, 192, 0.1), rgba(26, 26, 46, 0.8)); }
+.rank-3 { border-color: #cd7f32; background: radial-gradient(circle at center, rgba(205, 127, 50, 0.1), rgba(26, 26, 46, 0.8)); }
+
+.rank-icon {
+    font-size: 3rem;
+    position: relative;
+}
+
+.rank-number {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+}
+
+.power-display {
+    margin-top: 1rem;
+}
+
+.power-number {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--purple);
+}
+
+.rank-badge {
+    padding: 0.5rem;
+    border-radius: 50%;
+    font-weight: bold;
+    font-size: 0.9rem;
+    min-width: 40px;
+    text-align: center;
+    display: inline-block;
+}
+
+.rank-1.rank-badge { background: linear-gradient(135deg, #ffd700, #ffed4e); color: #1a1a2e; }
+.rank-2.rank-badge { background: linear-gradient(135deg, #c0c0c0, #e5e5e5); color: #1a1a2e; }
+.rank-3.rank-badge { background: linear-gradient(135deg, #cd7f32, #daa520); color: #1a1a2e; }
+.rank-other.rank-badge { background: rgba(108, 117, 125, 0.3); color: #6c757d; }
+
+.current-user-row {
+    background: rgba(79, 172, 254, 0.1) !important;
+    border-left: 4px solid var(--celestial);
+}
+
+.cultivation-badge {
+    background: rgba(142, 45, 226, 0.2);
+    color: var(--purple);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.guild-level-badge {
+    background: linear-gradient(135deg, var(--golden), #ffed4e);
+    color: var(--darker-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.reputation-display {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.reputation-stars {
+    margin-top: 0.25rem;
+}
+
+.karma-points {
+    font-weight: 600;
+}
+
+.achievement-card {
+    background: rgba(26, 26, 46, 0.8);
+    border: 1px solid;
+    border-radius: 15px;
+    padding: 1.5rem;
+    position: relative;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.achievement-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+}
+
+.achievement-card.rarity-common { border-color: rgba(108, 117, 125, 0.5); }
+.achievement-card.rarity-rare { border-color: rgba(79, 172, 254, 0.5); }
+.achievement-card.rarity-legendary { 
+    border-color: rgba(255, 215, 0, 0.5);
+    background: radial-gradient(circle at center, rgba(255, 215, 0, 0.05), rgba(26, 26, 46, 0.8));
+}
+
+.achievement-rarity {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.achievement-icon {
+    font-size: 1.5rem;
+}
+
+.mystical-table {
+    background: rgba(26, 26, 46, 0.5);
+}
+
+.mystical-table th {
+    border-color: rgba(255, 215, 0, 0.3);
+    color: var(--golden);
+    font-weight: 600;
+    background: rgba(15, 15, 35, 0.8);
+}
+
+.mystical-table td {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.mystical-table tbody tr:hover {
+    background: rgba(142, 45, 226, 0.1);
+}
+
+.power-text {
+    font-weight: 600;
+    font-family: 'Courier New', monospace;
+}
+
+@media (max-width: 768px) {
+    .top-ranking-card {
+        margin-bottom: 1rem;
+        padding: 1rem;
+    }
+    
+    .rank-icon {
+        font-size: 2rem;
+    }
+    
+    .power-number {
+        font-size: 1.2rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Chart.js for Guild Statistics
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('guildStatsChart').getContext('2d');
+    
+    // Prepare data from guild rankings
+    const guildNames = [{% for guild in guild_rankings[:10] %}'{{ guild.name }}'{{ ',' if not loop.last }}{% endfor %}];
+    const guildLevels = [{% for guild in guild_rankings[:10] %}{{ guild.level }}{{ ',' if not loop.last }}{% endfor %}];
+    const guildMembers = [{% for guild in guild_rankings[:10] %}{{ guild.members|length }}{{ ',' if not loop.last }}{% endfor %}];
+    const guildTerritories = [{% for guild in guild_rankings[:10] %}{{ guild.territory_count }}{{ ',' if not loop.last }}{% endfor %}];
+    
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: guildNames,
+            datasets: [
+                {
+                    label: 'Cấp Độ',
+                    data: guildLevels,
+                    backgroundColor: 'rgba(255, 215, 0, 0.6)',
+                    borderColor: 'rgba(255, 215, 0, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y'
+                },
+                {
+                    label: 'Thành Viên',
+                    data: guildMembers,
+                    backgroundColor: 'rgba(79, 172, 254, 0.6)',
+                    borderColor: 'rgba(79, 172, 254, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1'
+                },
+                {
+                    label: 'Lãnh Thổ',
+                    data: guildTerritories,
+                    backgroundColor: 'rgba(142, 45, 226, 0.6)',
+                    borderColor: 'rgba(142, 45, 226, 1)',
+                    borderWidth: 1,
+                    yAxisID: 'y1'
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                title: {
+                    display: true,
+                    text: 'Thống Kê Top 10 Bang Hội',
+                    color: '#ffd700',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    }
+                },
+                legend: {
+                    labels: {
+                        color: '#e0e6ed'
+                    }
+                }
+            },
+            scales: {
+                x: {
+                    ticks: {
+                        color: '#e0e6ed',
+                        maxRotation: 45
+                    },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.1)'
+                    }
+                },
+                y: {
+                    type: 'linear',
+                    display: true,
+                    position: 'left',
+                    ticks: {
+                        color: '#ffd700'
+                    },
+                    grid: {
+                        color: 'rgba(255, 215, 0, 0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Cấp Độ',
+                        color: '#ffd700'
+                    }
+                },
+                y1: {
+                    type: 'linear',
+                    display: true,
+                    position: 'right',
+                    ticks: {
+                        color: '#4facfe'
+                    },
+                    grid: {
+                        drawOnChartArea: false,
+                        color: 'rgba(79, 172, 254, 0.1)'
+                    },
+                    title: {
+                        display: true,
+                        text: 'Thành Viên / Lãnh Thổ',
+                        color: '#4facfe'
+                    }
+                }
+            },
+            elements: {
+                bar: {
+                    borderWidth: 1,
+                    borderRadius: 4
+                }
+            }
+        }
+    });
+});
+
+// Animation for rank numbers
+document.addEventListener('DOMContentLoaded', function() {
+    const rankNumbers = document.querySelectorAll('.power-number');
+    
+    const animateNumbers = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.textContent.replace(/,/g, ''));
+                let current = 0;
+                const increment = target / 50;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        entry.target.textContent = target.toLocaleString();
+                        clearInterval(timer);
+                    } else {
+                        entry.target.textContent = Math.floor(current).toLocaleString();
+                    }
+                }, 50);
+                
+                observer.unobserve(entry.target);
+            }
+        });
+    };
+    
+    const observer = new IntersectionObserver(animateNumbers);
+    rankNumbers.forEach(number => observer.observe(number));
+});
+</script>
+{% endblock %}

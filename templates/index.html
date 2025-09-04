@@ -1,0 +1,268 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center min-vh-100">
+            <div class="col-lg-6">
+                <div class="hero-content">
+                    <h1 class="hero-title mb-4">
+                        <span class="text-golden">天道</span><br>
+                        <span class="text-purple">Thiên Đạo Tu Tiên</span><br>
+                        <span class="text-celestial">Cộng Đồng Huyền Bí</span>
+                    </h1>
+                    <p class="hero-subtitle mb-5">
+                        Khám phá thế giới tu tiên rộng lớn với AI thông minh, hệ thống sát nhập bang hội, 
+                        và những cuộc đạo lữ kỳ thú. Trở thành thiên đạo mạnh nhất!
+                    </p>
+                    
+                    {% if not current_user.is_authenticated %}
+                        <div class="hero-actions">
+                            <a href="{{ url_for('auth') }}" class="btn btn-golden btn-lg me-3 mystical-btn">
+                                <i class="fas fa-user-plus me-2"></i>Bắt Đầu Tu Tiên
+                            </a>
+                            <a href="#features" class="btn btn-outline-celestial btn-lg mystical-btn">
+                                <i class="fas fa-info-circle me-2"></i>Tìm Hiểu Thêm
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="hero-actions">
+                            <a href="{{ url_for('dashboard') }}" class="btn btn-golden btn-lg mystical-btn">
+                                <i class="fas fa-tachometer-alt me-2"></i>Vào Thiên Đạo
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-lg-6">
+                <div class="hero-image">
+                    <img src="https://pixabay.com/get/g237a70827294d8a32f1c1d9031cbd3c13cd935e946667f759c169c54dc3439a1f25041576e61c92f1683b787665963d54015e273d105db5172aeadae07a7ec69_1280.jpg" 
+                         alt="Mystical Landscape" class="img-fluid mystical-image">
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="stats-section py-5">
+    <div class="container">
+        <div class="row text-center">
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card mystical-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-users text-golden"></i>
+                    </div>
+                    <h3 class="stat-number text-purple">{{ stats.total_users }}</h3>
+                    <p class="stat-label">Thiên Đạo</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card mystical-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-shield-alt text-celestial"></i>
+                    </div>
+                    <h3 class="stat-number text-purple">{{ stats.total_guilds }}</h3>
+                    <p class="stat-label">Bang Hội</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card mystical-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-globe text-golden"></i>
+                    </div>
+                    <h3 class="stat-number text-purple">{{ stats.total_worlds }}</h3>
+                    <p class="stat-label">Thế Giới</p>
+                </div>
+            </div>
+            <div class="col-md-3 col-6 mb-4">
+                <div class="stat-card mystical-card">
+                    <div class="stat-icon">
+                        <i class="fas fa-map-marked-alt text-celestial"></i>
+                    </div>
+                    <h3 class="stat-number text-purple">{{ stats.active_expeditions }}</h3>
+                    <p class="stat-label">Đạo Lữ Đang Diễn Ra</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section id="features" class="features-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title text-golden">Tính Năng Độc Đáo</h2>
+            <p class="section-subtitle">Khám phá những tính năng huyền bí của thế giới tu tiên</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card mystical-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-brain text-celestial"></i>
+                    </div>
+                    <h4 class="text-purple">AI Thông Minh</h4>
+                    <p>Dự đoán vận mệnh tu luyện, tư vấn chiến thuật bang hội và hướng dẫn đạo lữ bằng AI tiên tiến.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card mystical-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-compress-arrows-alt text-golden"></i>
+                    </div>
+                    <h4 class="text-purple">Sát Nhập Thế Giới</h4>
+                    <p>Hệ thống sát nhập bang hội độc đáo với chiến tranh quy mô lớn và đàm phán liên minh phức tạp.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card mystical-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-route text-celestial"></i>
+                    </div>
+                    <h4 class="text-purple">Đạo Lữ Huyền Bí</h4>
+                    <p>Khám phá bí cảnh với đội nhóm đa người chơi, boss đặc biệt và sự kiện ngẫu nhiên thú vị.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card mystical-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-trophy text-golden"></i>
+                    </div>
+                    <h4 class="text-purple">Hệ Thống Xếp Hạng</h4>
+                    <p>Đánh giá sức mạnh tu luyện, danh hiệu thiên đạo và bảng xếp hạng đa dạng theo nhiều tiêu chí.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card mystical-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-gem text-celestial"></i>
+                    </div>
+                    <h4 class="text-purple">Kho Tàng Huyền Bí</h4>
+                    <p>Quản lý đan dược, pháp bảo, linh thạch và các tài nguyên quý hiếm với hệ thống tự động thông minh.</p>
+                </div>
+            </div>
+            
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="feature-card mystical-card h-100">
+                    <div class="feature-icon">
+                        <i class="fas fa-comments text-golden"></i>
+                    </div>
+                    <h4 class="text-purple">Cộng Đồng Sôi Động</h4>
+                    <p>Giao lưu thiên đạo, hệ thống mentor-đệ tử và forum thảo luận tu luyện chuyên sâu.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Recent Achievements -->
+{% if recent_achievements %}
+<section class="achievements-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title text-celestial">Thành Tựu Gần Đây</h2>
+            <p class="section-subtitle">Những thiên đạo xuất sắc nhất cộng đồng</p>
+        </div>
+        
+        <div class="row">
+            {% for achievement in recent_achievements %}
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="achievement-card mystical-card">
+                    <div class="achievement-header">
+                        <span class="achievement-rarity rarity-{{ achievement.rarity }}">
+                            {{ achievement.rarity.title() }}
+                        </span>
+                    </div>
+                    <h5 class="achievement-title text-purple">{{ achievement.title }}</h5>
+                    <p class="achievement-user text-golden">{{ achievement.user.dao_name or achievement.user.username }}</p>
+                    <p class="achievement-desc">{{ achievement.description }}</p>
+                    <small class="text-muted">{{ achievement.earned_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Gallery Section -->
+<section class="gallery-section py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="section-title text-purple">Thế Giới Huyền Bí</h2>
+            <p class="section-subtitle">Khám phá những cảnh quan tuyệt đẹp trong tu tiên</p>
+        </div>
+        
+        <div class="row g-3">
+            <div class="col-md-6 col-lg-4">
+                <div class="gallery-item">
+                    <img src="https://pixabay.com/get/g584782012caca71b780fe088438d0a7f942acf55165743cd752bc7d3555dd29d75343b5c637685c1704e59a68ae24af52da70177fc50e9435d5deb132da341ec_1280.jpg" 
+                         alt="Mystical Forest" class="gallery-img mystical-image">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Rừng Huyền Bí</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="gallery-item">
+                    <img src="https://pixabay.com/get/g2ab8ef49dc04f4caab4f14f71a61c51a5fa5e5e3153e0f34df3e3acd08e85a8cbdb194d91fc9260673b9a8c46b1becbbfdc9dd6629d254a43b3a55cfdfa6f947_1280.jpg" 
+                         alt="Ancient Temple" class="gallery-img mystical-image">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Cổ Tự Linh Thiêng</h5>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-4">
+                <div class="gallery-item">
+                    <img src="https://pixabay.com/get/g862f2dc9236285a1f7a13f89e5ec18cd2b7259cd86ef396d2569c674783488a2010f1ce735cb5743c9c904337b52ff512125d7c9c25faa371f37793437544b5c_1280.jpg" 
+                         alt="Crystal Cave" class="gallery-img mystical-image">
+                    <div class="gallery-overlay">
+                        <h5 class="text-white">Động Pha Lê</h5>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Animate numbers on scroll
+document.addEventListener('DOMContentLoaded', function() {
+    const statNumbers = document.querySelectorAll('.stat-number');
+    
+    const animateNumbers = (entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const target = parseInt(entry.target.textContent);
+                let current = 0;
+                const increment = target / 50;
+                
+                const timer = setInterval(() => {
+                    current += increment;
+                    if (current >= target) {
+                        entry.target.textContent = target;
+                        clearInterval(timer);
+                    } else {
+                        entry.target.textContent = Math.floor(current);
+                    }
+                }, 50);
+                
+                observer.unobserve(entry.target);
+            }
+        });
+    };
+    
+    const observer = new IntersectionObserver(animateNumbers);
+    statNumbers.forEach(number => observer.observe(number));
+});
+</script>
+{% endblock %}

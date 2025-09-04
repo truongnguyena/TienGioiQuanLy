@@ -1,0 +1,507 @@
+{% extends "base.html" %}
+
+{% block title %}Quản Lý Bang Hội - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header mb-4">
+                <h1 class="text-purple">
+                    <i class="fas fa-shield-alt me-3"></i>Quản Lý Bang Hội
+                </h1>
+                <p class="text-light opacity-75">Sát nhập thế giới, chiến tranh bang hội và liên minh thiên đạo</p>
+            </div>
+        </div>
+    </div>
+
+    {% if user_guild %}
+    <!-- Guild Overview -->
+    <div class="row mb-4">
+        <div class="col-lg-8">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h4 class="text-golden mb-0">{{ user_guild.name }}</h4>
+                        <span class="guild-level-badge">Cấp {{ user_guild.level }}</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="text-light mb-4">{{ user_guild.description }}</p>
+                    
+                    <!-- Guild Stats -->
+                    <div class="row mb-4">
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-box">
+                                <i class="fas fa-users text-celestial"></i>
+                                <h3 class="text-purple">{{ user_guild.members|length }}</h3>
+                                <p class="text-light">Thành Viên</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-box">
+                                <i class="fas fa-coins text-golden"></i>
+                                <h3 class="text-purple">{{ user_guild.treasury }}</h3>
+                                <p class="text-light">Kho Bạc</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-box">
+                                <i class="fas fa-map text-celestial"></i>
+                                <h3 class="text-purple">{{ user_guild.territory_count }}</h3>
+                                <p class="text-light">Lãnh Thổ</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6 mb-3">
+                            <div class="stat-box">
+                                <i class="fas fa-star text-golden"></i>
+                                <h3 class="text-purple">{{ user_guild.experience }}</h3>
+                                <p class="text-light">Kinh Nghiệm</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Guild Experience Progress -->
+                    <div class="guild-progress mb-4">
+                        <div class="d-flex justify-content-between mb-2">
+                            <span class="text-light">Tiến Độ Cấp Độ</span>
+                            <span class="text-golden">{{ user_guild.experience % 10000 }}/{{ (user_guild.level * 10000) }}</span>
+                        </div>
+                        <div class="progress mystical-progress">
+                            <div class="progress-bar progress-bar-golden" style="width: {{ ((user_guild.experience % 10000) / (user_guild.level * 10000)) * 100 }}%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions -->
+                    {% if user_guild.leader_id == current_user.id %}
+                    <div class="guild-actions">
+                        <button class="btn btn-purple mystical-btn me-2" data-bs-toggle="modal" data-bs-target="#guildSettingsModal">
+                            <i class="fas fa-cog me-2"></i>Cài Đặt Bang Hội
+                        </button>
+                        <button class="btn btn-golden mystical-btn me-2" data-bs-toggle="modal" data-bs-target="#declareWarModal">
+                            <i class="fas fa-sword me-2"></i>Tuyên Chiến
+                        </button>
+                        <button class="btn btn-celestial mystical-btn" data-bs-toggle="modal" data-bs-target="#recruitModal">
+                            <i class="fas fa-user-plus me-2"></i>Tuyển Thành Viên
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Guild Members -->
+        <div class="col-lg-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-users me-2"></i>Thành Viên Bang Hội
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 400px; overflow-y: auto;">
+                    {% for member in user_guild.members %}
+                    <div class="member-item">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="member-info">
+                                <h6 class="text-light mb-1">{{ member.dao_name or member.username }}</h6>
+                                <small class="text-celestial">{{ member.cultivation_level }}</small>
+                                {% if member.id == user_guild.leader_id %}
+                                <span class="leader-badge ms-2">
+                                    <i class="fas fa-crown"></i> Bang Chủ
+                                </span>
+                                {% endif %}
+                            </div>
+                            <div class="member-power">
+                                <span class="text-golden">{{ member.spiritual_power }}</span>
+                                <small class="text-muted d-block">Linh Lực</small>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- War Predictions (Guild Leader Only) -->
+    {% if user_guild.leader_id == current_user.id and war_predictions %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-crystal-ball me-2"></i>AI Dự Đoán Chiến Tranh
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for prediction in war_predictions[:3] %}
+                        <div class="col-lg-4 mb-3">
+                            <div class="prediction-card">
+                                <h6 class="text-purple">{{ prediction.target_guild.name }}</h6>
+                                
+                                <div class="prediction-stats">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-light">Tỷ Lệ Thắng:</span>
+                                        <span class="text-{{ 'success' if prediction.guild1_win_probability > 60 else 'warning' if prediction.guild1_win_probability > 40 else 'danger' }}">
+                                            {{ prediction.guild1_win_probability }}%
+                                        </span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span class="text-light">Thời Gian Dự Kiến:</span>
+                                        <span class="text-celestial">{{ prediction.predicted_duration_days }} ngày</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-light">Tổn Thất:</span>
+                                        <span class="text-{{ 'danger' if prediction.casualty_estimate == 'Cao' else 'warning' }}">
+                                            {{ prediction.casualty_estimate }}
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <div class="prediction-actions mt-3">
+                                    <button class="btn btn-sm btn-outline-purple mystical-btn w-100" onclick="declareWarAgainst('{{ prediction.target_guild.id }}', '{{ prediction.target_guild.name }}')">
+                                        <i class="fas fa-sword me-1"></i>Tuyên Chiến
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    {% else %}
+    <!-- No Guild Section -->
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="mystical-card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-shield-alt text-muted mb-4" style="font-size: 5rem;"></i>
+                    <h3 class="text-light mb-3">Bạn Chưa Có Bang Hội</h3>
+                    <p class="text-muted mb-4">Tham gia một bang hội để trải nghiệm các tính năng sát nhập thế giới và chiến tranh bang hội!</p>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <button class="btn btn-golden mystical-btn" data-bs-toggle="modal" data-bs-target="#createGuildModal">
+                            <i class="fas fa-plus me-2"></i>Tạo Bang Hội
+                        </button>
+                        <button class="btn btn-celestial mystical-btn" data-bs-toggle="modal" data-bs-target="#joinGuildModal">
+                            <i class="fas fa-search me-2"></i>Tìm Bang Hội
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Active Wars -->
+    {% if active_wars %}
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-swords me-2"></i>Chiến Tranh Đang Diễn Ra
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for war in active_wars %}
+                        <div class="col-lg-6 mb-3">
+                            <div class="war-card">
+                                <div class="war-header">
+                                    <h6 class="text-purple">{{ war.guild.name }} vs {{ war.target_guild.name }}</h6>
+                                    <span class="war-type-badge type-{{ war.war_type|replace(' ', '-')|lower }}">
+                                        {{ war.war_type }}
+                                    </span>
+                                </div>
+                                
+                                <div class="war-info mt-2">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-light">Bắt Đầu:</span>
+                                        <span class="text-celestial">{{ war.start_time.strftime('%d/%m/%Y') }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between">
+                                        <span class="text-light">Trạng Thái:</span>
+                                        <span class="text-warning">{{ war.status }}</span>
+                                    </div>
+                                </div>
+
+                                {% if user_guild and (war.guild_id == user_guild.id or war.target_guild_id == user_guild.id) %}
+                                <div class="war-actions mt-3">
+                                    <button class="btn btn-sm btn-purple mystical-btn me-2" onclick="viewWarDetails({{ war.id }})">
+                                        <i class="fas fa-eye me-1"></i>Chi Tiết
+                                    </button>
+                                    <button class="btn btn-sm btn-golden mystical-btn" onclick="sendReinforcments({{ war.id }})">
+                                        <i class="fas fa-plus me-1"></i>Viện Trợ
+                                    </button>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- All Guilds -->
+    <div class="row">
+        <div class="col-12">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-list me-2"></i>Tất Cả Bang Hội
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-dark mystical-table">
+                            <thead>
+                                <tr>
+                                    <th>Bang Hội</th>
+                                    <th>Bang Chủ</th>
+                                    <th>Cấp Độ</th>
+                                    <th>Thành Viên</th>
+                                    <th>Lãnh Thổ</th>
+                                    <th>Hành Động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for guild in all_guilds %}
+                                <tr>
+                                    <td>
+                                        <strong class="text-golden">{{ guild.name }}</strong>
+                                        {% if guild.id == user_guild.id if user_guild else false %}
+                                        <span class="badge bg-success ms-2">Bang Hội Của Bạn</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-celestial">
+                                        {% for member in guild.members %}
+                                            {% if member.id == guild.leader_id %}
+                                                {{ member.dao_name or member.username }}
+                                                {% break %}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </td>
+                                    <td><span class="guild-level-badge">{{ guild.level }}</span></td>
+                                    <td class="text-light">{{ guild.members|length }}</td>
+                                    <td class="text-purple">{{ guild.territory_count }}</td>
+                                    <td>
+                                        {% if not user_guild %}
+                                        <button class="btn btn-sm btn-outline-celestial mystical-btn" onclick="requestJoinGuild({{ guild.id }})">
+                                            <i class="fas fa-plus me-1"></i>Xin Vào
+                                        </button>
+                                        {% elif user_guild.id != guild.id %}
+                                        <button class="btn btn-sm btn-outline-purple mystical-btn me-2" onclick="viewGuildDetails({{ guild.id }})">
+                                            <i class="fas fa-eye me-1"></i>Xem
+                                        </button>
+                                        {% if user_guild.leader_id == current_user.id %}
+                                        <button class="btn btn-sm btn-outline-golden mystical-btn" onclick="declareWarAgainst({{ guild.id }}, '{{ guild.name }}')">
+                                            <i class="fas fa-sword me-1"></i>Chiến
+                                        </button>
+                                        {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Create Guild Modal -->
+<div class="modal fade" id="createGuildModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-plus me-2"></i>Tạo Bang Hội Mới
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createGuildForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Tên Bang Hội</label>
+                        <input type="text" class="form-control mystical-input" name="name" required>
+                        <div class="form-text text-light opacity-75">Chi phí: 10,000 linh thạch</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mô Tả</label>
+                        <textarea class="form-control mystical-input" name="description" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-golden mystical-btn" onclick="createGuild()">Tạo Bang Hội</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Declare War Modal -->
+<div class="modal fade" id="declareWarModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-sword me-2"></i>Tuyên Chiến
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="declareWarForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Bang Hội Mục Tiêu</label>
+                        <select class="form-control mystical-input" name="target_guild_id" required>
+                            <option value="">Chọn bang hội</option>
+                            {% for guild in all_guilds %}
+                                {% if user_guild and guild.id != user_guild.id %}
+                                <option value="{{ guild.id }}">{{ guild.name }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Loại Chiến Tranh</label>
+                        <select class="form-control mystical-input" name="war_type" required>
+                            <option value="">Chọn loại chiến tranh</option>
+                            <option value="Sát Nhập">Sát Nhập - Hợp nhất hai bang hội</option>
+                            <option value="Chinh Phục">Chinh Phục - Chiếm lãnh thổ</option>
+                            <option value="Tranh Chấp">Tranh Chấp - Giải quyết mâu thuẫn</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-golden mystical-btn" onclick="submitWarDeclaration()">Tuyên Chiến</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.guild-level-badge {
+    background: linear-gradient(135deg, var(--golden), #ffed4e);
+    color: var(--darker-bg);
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.stat-box {
+    text-align: center;
+    padding: 1.5rem;
+    background: rgba(79, 172, 254, 0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.stat-box:hover {
+    background: rgba(79, 172, 254, 0.15);
+    transform: translateY(-2px);
+}
+
+.stat-box i {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.stat-box h3 {
+    font-size: 1.8rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.member-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.member-item:last-child {
+    border-bottom: none;
+}
+
+.leader-badge {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--golden);
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: 600;
+}
+
+.prediction-card {
+    background: rgba(142, 45, 226, 0.1);
+    border: 1px solid rgba(142, 45, 226, 0.3);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.prediction-card:hover {
+    background: rgba(142, 45, 226, 0.15);
+    transform: translateY(-2px);
+}
+
+.war-card {
+    background: rgba(255, 215, 0, 0.1);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+    border-left: 4px solid var(--golden);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+}
+
+.war-card:hover {
+    background: rgba(255, 215, 0, 0.15);
+}
+
+.war-type-badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.type-sát-nhập { background: rgba(142, 45, 226, 0.2); color: var(--purple); }
+.type-chinh-phục { background: rgba(220, 53, 69, 0.2); color: #dc3545; }
+.type-tranh-chấp { background: rgba(255, 193, 7, 0.2); color: #ffc107; }
+
+.mystical-table th {
+    border-color: rgba(255, 215, 0, 0.3);
+    color: var(--golden);
+    font-weight: 600;
+}
+
+.mystical-table td {
+    border-color: rgba(255, 255, 255, 0.1);
+}
+
+.mystical-table tbody tr:hover {
+    background: rgba(142, 45, 226, 0.1);
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/guild.js') }}"></script>
+{% endblock %}

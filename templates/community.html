@@ -1,0 +1,555 @@
+{% extends "base.html" %}
+
+{% block title %}Cộng Đồng - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header mb-4">
+                <h1 class="text-celestial">
+                    <i class="fas fa-users me-3"></i>Cộng Đồng Thiên Đạo
+                </h1>
+                <p class="text-light opacity-75">Giao lưu, thảo luận và chia sẻ kinh nghiệm tu luyện</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Chat Channels -->
+        <div class="col-lg-8 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="text-golden mb-0">
+                            <i class="fas fa-comments me-2"></i>Kênh Trò Chuyện
+                        </h5>
+                        <div class="chat-controls">
+                            <select class="form-select form-select-sm mystical-input" id="chatChannel" onchange="switchChannel()">
+                                <option value="general">Kênh Chung</option>
+                                {% if current_user.guild_id %}
+                                <option value="guild">Bang Hội</option>
+                                {% endif %}
+                                <option value="cultivation">Tu Luyện</option>
+                                <option value="trade">Giao Dịch</option>
+                                <option value="help">Trợ Giúp</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card-body p-0">
+                    <!-- Chat Messages Area -->
+                    <div class="chat-messages" id="chatMessages" style="height: 400px; overflow-y: auto; padding: 1rem;">
+                        <div class="text-center">
+                            <div class="loading-spinner"></div>
+                            <p class="text-light mt-2">Đang tải tin nhắn...</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Chat Input -->
+                    <div class="chat-input-area p-3 border-top border-secondary">
+                        <form id="chatForm" onsubmit="sendMessage(event)">
+                            <div class="input-group">
+                                <input type="text" class="form-control mystical-input" id="messageInput" 
+                                       placeholder="Nhập tin nhắn..." maxlength="500" required>
+                                <button class="btn btn-golden mystical-btn" type="submit">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Community Features -->
+        <div class="col-lg-4 mb-4">
+            <!-- Online Users -->
+            <div class="mystical-card mb-4">
+                <div class="card-header">
+                    <h5 class="text-purple mb-0">
+                        <i class="fas fa-user-friends me-2"></i>Thiên Đạo Trực Tuyến
+                    </h5>
+                </div>
+                <div class="card-body" style="max-height: 200px; overflow-y: auto;">
+                    <div class="online-users-list">
+                        <!-- This would be populated by real-time data -->
+                        <div class="online-user-item">
+                            <div class="d-flex align-items-center">
+                                <div class="online-indicator me-2"></div>
+                                <div class="user-info">
+                                    <span class="text-golden">{{ current_user.dao_name or current_user.username }}</span>
+                                    <small class="text-muted d-block">{{ current_user.cultivation_level }}</small>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Placeholder for other online users -->
+                        <div class="text-center py-3">
+                            <small class="text-muted">Danh sách thiên đạo trực tuyến sẽ được cập nhật real-time</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="mystical-card mb-4">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-bolt me-2"></i>Hành Động Nhanh
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-golden mystical-btn" data-bs-toggle="modal" data-bs-target="#broadcastModal">
+                            <i class="fas fa-bullhorn me-2"></i>Thông Báo Thiên Hạ
+                        </button>
+                        <button class="btn btn-purple mystical-btn" data-bs-toggle="modal" data-bs-target="#mentorRequestModal">
+                            <i class="fas fa-graduation-cap me-2"></i>Tìm Sư Phụ
+                        </button>
+                        <button class="btn btn-celestial mystical-btn" data-bs-toggle="modal" data-bs-target="#tradeModal">
+                            <i class="fas fa-exchange-alt me-2"></i>Đăng Giao Dịch
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Community Events -->
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-calendar-alt me-2"></i>Sự Kiện Cộng Đồng
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="event-list">
+                        <div class="event-item mb-3">
+                            <div class="event-icon">
+                                <i class="fas fa-sword text-golden"></i>
+                            </div>
+                            <div class="event-info">
+                                <h6 class="text-purple mb-1">Đại Hội Võ Lâm</h6>
+                                <small class="text-light">Sự kiện PvP toàn server</small>
+                                <div class="event-time text-celestial">
+                                    <i class="fas fa-clock me-1"></i>3 ngày nữa
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="event-item mb-3">
+                            <div class="event-icon">
+                                <i class="fas fa-gem text-celestial"></i>
+                            </div>
+                            <div class="event-info">
+                                <h6 class="text-purple mb-1">Mưa Linh Thạch</h6>
+                                <small class="text-light">Tăng gấp đôi thu hoạch</small>
+                                <div class="event-time text-celestial">
+                                    <i class="fas fa-clock me-1"></i>Cuối tuần này
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="event-item">
+                            <div class="event-icon">
+                                <i class="fas fa-dragon text-purple"></i>
+                            </div>
+                            <div class="event-info">
+                                <h6 class="text-purple mb-1">Thiên Kiếp Thế Kỷ</h6>
+                                <small class="text-light">Boss raid khó khăn nhất</small>
+                                <div class="event-time text-celestial">
+                                    <i class="fas fa-clock me-1"></i>Tháng tới
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Forum Topics (if needed) -->
+    <div class="row">
+        <div class="col-12">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-purple mb-0">
+                        <i class="fas fa-list-alt me-2"></i>Chủ Đề Thảo Luận Hot
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-lg-6 mb-3">
+                            <div class="forum-topic">
+                                <h6 class="text-golden">
+                                    <i class="fas fa-fire me-2"></i>Bí quyết đột phá Kết Đan
+                                </h6>
+                                <p class="text-light mb-2">Chia sẻ kinh nghiệm và mẹo vặt để vượt qua thiên kiếp Kết Đan một cách an toàn...</p>
+                                <div class="topic-meta">
+                                    <span class="text-celestial me-3">
+                                        <i class="fas fa-user me-1"></i>Thiên Kiếm Tử
+                                    </span>
+                                    <span class="text-muted me-3">
+                                        <i class="fas fa-comments me-1"></i>24 phản hồi
+                                    </span>
+                                    <span class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>2 giờ trước
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 mb-3">
+                            <div class="forum-topic">
+                                <h6 class="text-golden">
+                                    <i class="fas fa-star me-2"></i>Top 10 Pháp Bảo Mạnh Nhất
+                                </h6>
+                                <p class="text-light mb-2">Đánh giá và so sánh các pháp bảo hiếm có khó tìm trong thế giới tu tiên...</p>
+                                <div class="topic-meta">
+                                    <span class="text-celestial me-3">
+                                        <i class="fas fa-user me-1"></i>Linh Vũ Đạo Nhân
+                                    </span>
+                                    <span class="text-muted me-3">
+                                        <i class="fas fa-comments me-1"></i>18 phản hồi
+                                    </span>
+                                    <span class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>5 giờ trước
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 mb-3">
+                            <div class="forum-topic">
+                                <h6 class="text-golden">
+                                    <i class="fas fa-shield-alt me-2"></i>Chiến Thuật Bang Hội Hiệu Quả
+                                </h6>
+                                <p class="text-light mb-2">Thảo luận về các chiến thuật sát nhập và phòng thủ trong chiến tranh bang hội...</p>
+                                <div class="topic-meta">
+                                    <span class="text-celestial me-3">
+                                        <i class="fas fa-user me-1"></i>Ma Đao Tổ Sư
+                                    </span>
+                                    <span class="text-muted me-3">
+                                        <i class="fas fa-comments me-1"></i>31 phản hồi
+                                    </span>
+                                    <span class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>1 ngày trước
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-lg-6 mb-3">
+                            <div class="forum-topic">
+                                <h6 class="text-golden">
+                                    <i class="fas fa-map me-2"></i>Hướng Dẫn Đạo Lữ Tân Thủ
+                                </h6>
+                                <p class="text-light mb-2">Lời khuyên cho những thiên đạo mới bắt đầu tham gia các cuộc đạo lữ...</p>
+                                <div class="topic-meta">
+                                    <span class="text-celestial me-3">
+                                        <i class="fas fa-user me-1"></i>Huyền Thiên Lão Tổ
+                                    </span>
+                                    <span class="text-muted me-3">
+                                        <i class="fas fa-comments me-1"></i>12 phản hồi
+                                    </span>
+                                    <span class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>3 ngày trước
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modals -->
+<!-- Broadcast Modal -->
+<div class="modal fade" id="broadcastModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-bullhorn me-2"></i>Thông Báo Thiên Hạ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Tin nhắn sẽ được gửi đến tất cả người chơi đang online. Chi phí: 1000 linh thạch.
+                </div>
+                <form id="broadcastForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Nội Dung Thông Báo</label>
+                        <textarea class="form-control mystical-input" rows="4" maxlength="200" required
+                                  placeholder="Nhập thông báo của bạn..."></textarea>
+                        <div class="form-text text-light opacity-75">Tối đa 200 ký tự</div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-golden mystical-btn">
+                    <i class="fas fa-paper-plane me-2"></i>Gửi Thông Báo
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Mentor Request Modal -->
+<div class="modal fade" id="mentorRequestModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-purple">
+                    <i class="fas fa-graduation-cap me-2"></i>Tìm Sư Phụ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="mentorRequestForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Cảnh Giới Mong Muốn</label>
+                        <select class="form-control mystical-input" required>
+                            <option value="">Chọn cảnh giới</option>
+                            <option value="Trúc Cơ">Trúc Cơ trở lên</option>
+                            <option value="Kết Đan">Kết Đan trở lên</option>
+                            <option value="Nguyên Anh">Nguyên Anh trở lên</option>
+                            <option value="Hóa Thần">Hóa Thần trở lên</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Lĩnh Vực Muốn Học</label>
+                        <textarea class="form-control mystical-input" rows="3" required
+                                  placeholder="VD: Luyện đan, thuật pháp chiến đấu, quản lý bang hội..."></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Phần Thưởng Đề Xuất</label>
+                        <input type="text" class="form-control mystical-input" 
+                               placeholder="VD: 5000 linh thạch, đan dược quý...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-purple mystical-btn">
+                    <i class="fas fa-search me-2"></i>Tìm Sư Phụ
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Trade Modal -->
+<div class="modal fade" id="tradeModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-celestial">
+                    <i class="fas fa-exchange-alt me-2"></i>Đăng Giao Dịch
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="tradeForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Loại Giao Dịch</label>
+                            <select class="form-control mystical-input" required>
+                                <option value="">Chọn loại</option>
+                                <option value="sell">Bán</option>
+                                <option value="buy">Mua</option>
+                                <option value="exchange">Trao Đổi</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Vật Phẩm</label>
+                            <input type="text" class="form-control mystical-input" required
+                                   placeholder="VD: Thiên Linh Đan, Huyền Thiên Kiếm...">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Số Lượng</label>
+                            <input type="number" class="form-control mystical-input" min="1" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label text-celestial">Giá (Linh Thạch)</label>
+                            <input type="number" class="form-control mystical-input" min="1" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mô Tả Chi Tiết</label>
+                        <textarea class="form-control mystical-input" rows="3" 
+                                  placeholder="Mô tả tình trạng, đặc tính của vật phẩm..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-celestial mystical-btn">
+                    <i class="fas fa-plus me-2"></i>Đăng Giao Dịch
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.chat-messages {
+    background: rgba(15, 15, 35, 0.3);
+    border-radius: 10px;
+}
+
+.chat-message {
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    border-radius: 10px;
+    background: rgba(26, 26, 46, 0.5);
+    transition: all 0.3s ease;
+}
+
+.chat-message:hover {
+    background: rgba(26, 26, 46, 0.7);
+}
+
+.chat-message.own-message {
+    background: rgba(79, 172, 254, 0.2);
+    margin-left: 20%;
+}
+
+.chat-message.system-message {
+    background: rgba(255, 215, 0, 0.1);
+    border-left: 4px solid var(--golden);
+    font-style: italic;
+}
+
+.message-header {
+    display: flex;
+    justify-content: between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.message-user {
+    font-weight: 600;
+    color: var(--golden);
+}
+
+.message-time {
+    font-size: 0.8rem;
+    color: rgba(224, 230, 237, 0.5);
+}
+
+.message-content {
+    color: var(--text-light);
+    line-height: 1.4;
+}
+
+.chat-input-area {
+    background: rgba(15, 15, 35, 0.5);
+}
+
+.online-indicator {
+    width: 8px;
+    height: 8px;
+    background: #28a745;
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7); }
+    70% { box-shadow: 0 0 0 10px rgba(40, 167, 69, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(40, 167, 69, 0); }
+}
+
+.online-user-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.online-user-item:last-child {
+    border-bottom: none;
+}
+
+.event-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.event-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem;
+    background: rgba(142, 45, 226, 0.1);
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.event-item:hover {
+    background: rgba(142, 45, 226, 0.15);
+    transform: translateX(5px);
+}
+
+.event-icon {
+    font-size: 1.5rem;
+    margin-right: 1rem;
+    width: 40px;
+    text-align: center;
+}
+
+.event-info {
+    flex: 1;
+}
+
+.event-time {
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.forum-topic {
+    background: rgba(79, 172, 254, 0.1);
+    border: 1px solid rgba(79, 172, 254, 0.3);
+    border-radius: 10px;
+    padding: 1rem;
+    transition: all 0.3s ease;
+    height: 100%;
+}
+
+.forum-topic:hover {
+    background: rgba(79, 172, 254, 0.15);
+    transform: translateY(-2px);
+}
+
+.topic-meta {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+.topic-meta span {
+    display: inline-block;
+}
+
+@media (max-width: 768px) {
+    .chat-message.own-message {
+        margin-left: 0;
+    }
+    
+    .topic-meta span {
+        display: block;
+        margin-bottom: 0.25rem;
+    }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{{ url_for('static', filename='js/community.js') }}"></script>
+{% endblock %}
