@@ -80,34 +80,78 @@
                                         </span>
                                     </div>
                                     <div class="world-actions">
-                                        <button class="btn btn-sm btn-outline-celestial mystical-btn me-2" onclick="exploreWorld({{ world.id }})">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <button class="btn btn-sm btn-outline-golden mystical-btn" onclick="upgradeWorld({{ world.id }})">
-                                            <i class="fas fa-arrow-up"></i>
-                                        </button>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-celestial mystical-btn" onclick="exploreWorld({{ world.id }})" title="Khám Phá">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-golden mystical-btn" onclick="openUpgradeModal({{ world.id }})" title="Nâng Cấp">
+                                                <i class="fas fa-arrow-up"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-success mystical-btn" onclick="harvestWorld({{ world.id }})" title="Thu Hoạch">
+                                                <i class="fas fa-seedling"></i>
+                                            </button>
+                                            <div class="btn-group" role="group">
+                                                <button type="button" class="btn btn-sm btn-outline-purple mystical-btn dropdown-toggle" data-bs-toggle="dropdown" title="Khả Năng Đặc Biệt">
+                                                    <i class="fas fa-magic"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-dark">
+                                                    {% if world.time_acceleration %}
+                                                    <li><a class="dropdown-item" href="#" onclick="activateAbility({{ world.id }}, 'time_acceleration')">
+                                                        <i class="fas fa-clock me-2"></i>Tăng Tốc Thời Gian
+                                                    </a></li>
+                                                    {% endif %}
+                                                    {% if world.dimensional_gate %}
+                                                    <li><a class="dropdown-item" href="#" onclick="activateAbility({{ world.id }}, 'dimensional_gate')">
+                                                        <i class="fas fa-portal-enter me-2"></i>Mở Cổng Không Gian
+                                                    </a></li>
+                                                    {% endif %}
+                                                    {% if world.auto_cultivation %}
+                                                    <li><a class="dropdown-item" href="#" onclick="activateAbility({{ world.id }}, 'mass_cultivation')">
+                                                        <i class="fas fa-atom me-2"></i>Tu Luyện Hàng Loạt
+                                                    </a></li>
+                                                    {% endif %}
+                                                </ul>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                             
+                            <div class="world-level-info mb-2">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="text-golden">Lv.{{ world.world_level or 1 }}</span>
+                                    <span class="text-celestial">{{ "{:,}".format(world.get_total_power()) }} Sức Mạnh</span>
+                                </div>
+                                <div class="progress mystical-progress" style="height: 4px;">
+                                    <div class="progress-bar progress-bar-golden" style="width: {{ ((world.world_experience or 0) / ((world.world_level or 1) * 500) * 100) }}%"></div>
+                                </div>
+                            </div>
+
                             <div class="world-stats mt-2">
                                 <div class="row text-center">
-                                    <div class="col-4">
+                                    <div class="col-3">
                                         <small class="text-celestial d-block">Linh Khí</small>
                                         <div class="progress mystical-progress mb-1" style="height: 6px;">
                                             <div class="progress-bar progress-bar-celestial" style="width: {{ world.spiritual_density }}%"></div>
                                         </div>
                                         <small class="text-light">{{ world.spiritual_density }}/100</small>
                                     </div>
-                                    <div class="col-4">
+                                    <div class="col-3">
                                         <small class="text-golden d-block">Tài Nguyên</small>
                                         <div class="progress mystical-progress mb-1" style="height: 6px;">
                                             <div class="progress-bar progress-bar-golden" style="width: {{ world.resource_richness }}%"></div>
                                         </div>
                                         <small class="text-light">{{ world.resource_richness }}/100</small>
                                     </div>
-                                    <div class="col-4">
-                                        <small class="text-purple d-block">Nguy Hiểm</small>
+                                    <div class="col-3">
+                                        <small class="text-purple d-block">Ổn Định</small>
+                                        <div class="progress mystical-progress mb-1" style="height: 6px;">
+                                            <div class="progress-bar progress-bar-purple" style="width: {{ world.stability or 100 }}%"></div>
+                                        </div>
+                                        <small class="text-light">{{ world.stability or 100 }}/100</small>
+                                    </div>
+                                    <div class="col-3">
+                                        <small class="text-danger d-block">Nguy Hiểm</small>
                                         <div class="danger-level danger-{{ world.danger_level }}">
                                             {% for i in range(world.danger_level) %}
                                             <i class="fas fa-skull"></i>
@@ -116,16 +160,89 @@
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Special Abilities -->
+                            {% if world.dimensional_gate or world.time_acceleration or world.auto_cultivation or world.resource_multiplication %}
+                            <div class="world-abilities mt-2 pt-2 border-top border-secondary">
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% if world.dimensional_gate %}
+                                    <span class="ability-badge dimensional-gate" title="Cổng Không Gian">
+                                        <i class="fas fa-portal-enter"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if world.time_acceleration %}
+                                    <span class="ability-badge time-acceleration" title="Tăng Tốc Thời Gian">
+                                        <i class="fas fa-clock"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if world.auto_cultivation %}
+                                    <span class="ability-badge auto-cultivation" title="Tự Động Tu Luyện">
+                                        <i class="fas fa-atom"></i>
+                                    </span>
+                                    {% endif %}
+                                    {% if world.resource_multiplication %}
+                                    <span class="ability-badge resource-multiplication" title="Nhân Tài Nguyên">
+                                        <i class="fas fa-coins"></i>
+                                    </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            {% endif %}
                             
                             <div class="world-production mt-2 pt-2 border-top border-secondary">
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-light">Sản Xuất/Ngày:</span>
-                                    <span class="text-golden">+{{ world.spiritual_stones_production }} Linh Thạch</span>
+                                <div class="row">
+                                    <div class="col-6">
+                                        <div class="d-flex justify-content-between">
+                                            <span class="text-light">Sản Xuất:</span>
+                                            <span class="text-golden">{{ world.spiritual_stones_production }} LS/ngày</span>
+                                        </div>
+                                        {% if world.daily_income and world.daily_income > 0 %}
+                                        <div class="d-flex justify-content-between">
+                                            <span class="text-light">Thu Nhập:</span>
+                                            <span class="text-celestial">{{ world.daily_income }} LS</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="col-6">
+                                        {% if world.barrier_strength and world.barrier_strength > 0 %}
+                                        <div class="d-flex justify-content-between">
+                                            <span class="text-light">Kết Giới:</span>
+                                            <span class="text-purple">{{ world.barrier_strength }}/100</span>
+                                        </div>
+                                        {% endif %}
+                                        {% if world.guardian_level and world.guardian_level > 0 %}
+                                        <div class="d-flex justify-content-between">
+                                            <span class="text-light">Thủ Hộ:</span>
+                                            <span class="text-golden">Lv.{{ world.guardian_level }}</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
-                                {% if world.rare_materials_count > 0 %}
-                                <div class="d-flex justify-content-between">
-                                    <span class="text-light">Nguyên Liệu Quý:</span>
-                                    <span class="text-celestial">{{ world.rare_materials_count }}</span>
+                                
+                                <!-- Special Resources -->
+                                {% if world.spiritual_herbs or world.ancient_artifacts or world.essence_crystals %}
+                                <div class="special-resources mt-2 pt-2 border-top border-dark">
+                                    <small class="text-celestial d-block mb-1">Tài Nguyên Đặc Biệt:</small>
+                                    <div class="row">
+                                        {% if world.spiritual_herbs %}
+                                        <div class="col-4 text-center">
+                                            <i class="fas fa-leaf text-success"></i>
+                                            <small class="d-block text-light">{{ world.spiritual_herbs }}</small>
+                                        </div>
+                                        {% endif %}
+                                        {% if world.ancient_artifacts %}
+                                        <div class="col-4 text-center">
+                                            <i class="fas fa-ankh text-warning"></i>
+                                            <small class="d-block text-light">{{ world.ancient_artifacts }}</small>
+                                        </div>
+                                        {% endif %}
+                                        {% if world.essence_crystals %}
+                                        <div class="col-4 text-center">
+                                            <i class="fas fa-gem text-info"></i>
+                                            <small class="d-block text-light">{{ world.essence_crystals }}</small>
+                                        </div>
+                                        {% endif %}
+                                    </div>
                                 </div>
                                 {% endif %}
                             </div>
@@ -350,6 +467,235 @@
         </div>
     </div>
 </div>
+
+<!-- Advanced World Upgrade Modal -->
+<div class="modal fade" id="upgradeWorldModal" tabindex="-1" data-bs-backdrop="true" data-bs-keyboard="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-arrow-up me-2"></i>Nâng Cấp Thế Giới: <span id="upgradeWorldName"></span>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- Core Upgrades -->
+                    <div class="col-lg-6 mb-4">
+                        <h6 class="text-celestial mb-3">
+                            <i class="fas fa-cog me-2"></i>Nâng Cấp Cơ Bản
+                        </h6>
+                        
+                        <div class="upgrade-option mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">Mật Độ Linh Khí</span>
+                                <span class="text-golden upgrade-cost" data-upgrade="spiritual_density">5,000 LS</span>
+                            </div>
+                            <div class="progress mystical-progress mb-2" style="height: 8px;">
+                                <div class="progress-bar progress-bar-celestial" id="spiritual_density_progress" style="width: 50%"></div>
+                            </div>
+                            <button class="btn btn-sm btn-celestial mystical-btn w-100" onclick="performUpgrade('spiritual_density')">
+                                <i class="fas fa-wind me-2"></i>Nâng Cấp (+10)
+                            </button>
+                        </div>
+
+                        <div class="upgrade-option mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">Độ Phong Phú Tài Nguyên</span>
+                                <span class="text-golden upgrade-cost" data-upgrade="resource_richness">5,000 LS</span>
+                            </div>
+                            <div class="progress mystical-progress mb-2" style="height: 8px;">
+                                <div class="progress-bar progress-bar-golden" id="resource_richness_progress" style="width: 50%"></div>
+                            </div>
+                            <button class="btn btn-sm btn-golden mystical-btn w-100" onclick="performUpgrade('resource_richness')">
+                                <i class="fas fa-gem me-2"></i>Nâng Cấp (+10)
+                            </button>
+                        </div>
+
+                        <div class="upgrade-option mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">Cấp Độ Thế Giới</span>
+                                <span class="text-purple upgrade-cost" data-upgrade="world_level">10,000 LS</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-light">Level <span id="current_world_level">1</span></span>
+                                <span class="text-celestial">+50 Dân Số, +Thu Nhập</span>
+                            </div>
+                            <button class="btn btn-sm btn-purple mystical-btn w-100 mt-2" onclick="performUpgrade('world_level')">
+                                <i class="fas fa-level-up-alt me-2"></i>Thăng Cấp
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Defensive & Economic -->
+                    <div class="col-lg-6 mb-4">
+                        <h6 class="text-golden mb-3">
+                            <i class="fas fa-shield me-2"></i>Phòng Thủ & Kinh Tế
+                        </h6>
+
+                        <div class="upgrade-option mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">Sức Mạnh Kết Giới</span>
+                                <span class="text-purple upgrade-cost" data-upgrade="barrier_strength">8,000 LS</span>
+                            </div>
+                            <div class="progress mystical-progress mb-2" style="height: 8px;">
+                                <div class="progress-bar progress-bar-purple" id="barrier_strength_progress" style="width: 0%"></div>
+                            </div>
+                            <button class="btn btn-sm btn-purple mystical-btn w-100" onclick="performUpgrade('barrier_strength')">
+                                <i class="fas fa-shield-alt me-2"></i>Nâng Cấp (+15)
+                            </button>
+                        </div>
+
+                        <div class="upgrade-option mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">Thủ Hộ Thần</span>
+                                <span class="text-golden upgrade-cost" data-upgrade="guardian_level">15,000 LS</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-light">Level <span id="current_guardian_level">0</span></span>
+                                <span class="text-celestial">+Phòng Thủ Tự Động</span>
+                            </div>
+                            <button class="btn btn-sm btn-golden mystical-btn w-100 mt-2" onclick="performUpgrade('guardian_level')">
+                                <i class="fas fa-dragon me-2"></i>Tri소환 Thủ Hộ
+                            </button>
+                        </div>
+
+                        <div class="upgrade-option mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="text-light">Chợ Búa</span>
+                                <span class="text-celestial upgrade-cost" data-upgrade="market_level">7,000 LS</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-light">Level <span id="current_market_level">0</span></span>
+                                <span class="text-golden">+Thương Mại, +Thu Nhập</span>
+                            </div>
+                            <button class="btn btn-sm btn-celestial mystical-btn w-100 mt-2" onclick="performUpgrade('market_level')">
+                                <i class="fas fa-store me-2"></i>Phát Triển Thương Mại
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- Special Abilities -->
+                    <div class="col-12">
+                        <h6 class="text-purple mb-3">
+                            <i class="fas fa-magic me-2"></i>Khả Năng Đặc Biệt
+                        </h6>
+                        
+                        <div class="row">
+                            <div class="col-lg-3 mb-3">
+                                <div class="special-upgrade-card">
+                                    <div class="text-center mb-2">
+                                        <i class="fas fa-portal-enter text-celestial" style="font-size: 2rem;"></i>
+                                        <h6 class="text-celestial mt-2">Cổng Không Gian</h6>
+                                    </div>
+                                    <p class="text-light small mb-3">Mở cổng dẫn đến các thế giới khác, tăng thương mại</p>
+                                    <div class="text-center">
+                                        <span class="text-golden d-block mb-2">50,000 LS</span>
+                                        <button class="btn btn-sm btn-celestial mystical-btn w-100" onclick="performUpgrade('dimensional_gate')" id="btn_dimensional_gate">
+                                            <i class="fas fa-unlock me-2"></i>Mở Khóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 mb-3">
+                                <div class="special-upgrade-card">
+                                    <div class="text-center mb-2">
+                                        <i class="fas fa-clock text-golden" style="font-size: 2rem;"></i>
+                                        <h6 class="text-golden mt-2">Tăng Tốc Thời Gian</h6>
+                                    </div>
+                                    <p class="text-light small mb-3">Tăng tốc mọi hoạt động trong thế giới x2</p>
+                                    <div class="text-center">
+                                        <span class="text-golden d-block mb-2">40,000 LS</span>
+                                        <button class="btn btn-sm btn-golden mystical-btn w-100" onclick="performUpgrade('time_acceleration')" id="btn_time_acceleration">
+                                            <i class="fas fa-unlock me-2"></i>Mở Khóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 mb-3">
+                                <div class="special-upgrade-card">
+                                    <div class="text-center mb-2">
+                                        <i class="fas fa-coins text-purple" style="font-size: 2rem;"></i>
+                                        <h6 class="text-purple mt-2">Nhân Tài Nguyên</h6>
+                                    </div>
+                                    <p class="text-light small mb-3">Nhân đôi mọi tài nguyên sản xuất</p>
+                                    <div class="text-center">
+                                        <span class="text-golden d-block mb-2">45,000 LS</span>
+                                        <button class="btn btn-sm btn-purple mystical-btn w-100" onclick="performUpgrade('resource_multiplication')" id="btn_resource_multiplication">
+                                            <i class="fas fa-unlock me-2"></i>Mở Khóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-lg-3 mb-3">
+                                <div class="special-upgrade-card">
+                                    <div class="text-center mb-2">
+                                        <i class="fas fa-atom text-celestial" style="font-size: 2rem;"></i>
+                                        <h6 class="text-celestial mt-2">Tự Động Tu Luyện</h6>
+                                    </div>
+                                    <p class="text-light small mb-3">Tự động tu luyện mọi lúc, bonus tu luyện</p>
+                                    <div class="text-center">
+                                        <span class="text-golden d-block mb-2">60,000 LS</span>
+                                        <button class="btn btn-sm btn-celestial mystical-btn w-100" onclick="performUpgrade('auto_cultivation')" id="btn_auto_cultivation">
+                                            <i class="fas fa-unlock me-2"></i>Mở Khóa
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional Upgrades -->
+                <div class="row mt-3">
+                    <div class="col-lg-4">
+                        <div class="upgrade-option">
+                            <h6 class="text-success">Tu Luyện & Ngộ Đạo</h6>
+                            <button class="btn btn-sm btn-success mystical-btn w-100 mb-2" onclick="performUpgrade('cultivation_bonus')">
+                                <i class="fas fa-plus me-2"></i>Tăng Bonus Tu Luyện (12,000 LS)
+                            </button>
+                            <button class="btn btn-sm btn-success mystical-btn w-100" onclick="performUpgrade('enlightenment_spots')">
+                                <i class="fas fa-lightbulb me-2"></i>Thêm Điểm Ngộ Đạo (10,000 LS)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="upgrade-option">
+                            <h6 class="text-info">Môi Trường & Khí Hậu</h6>
+                            <button class="btn btn-sm btn-info mystical-btn w-100 mb-2" onclick="performUpgrade('climate_control')">
+                                <i class="fas fa-cloud-sun me-2"></i>Kiểm Soát Khí Hậu (8,000 LS)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="col-lg-4">
+                        <div class="upgrade-option">
+                            <h6 class="text-warning">Cơ Sở Hạ Tầng</h6>
+                            <button class="btn btn-sm btn-warning mystical-btn w-100" onclick="performUpgrade('infrastructure')">
+                                <i class="fas fa-building me-2"></i>Nâng Cấp Hạ Tầng (6,000 LS)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <div class="d-flex w-100 justify-content-between align-items-center">
+                    <div>
+                        <span class="text-light">Linh Thạch Hiện Tại: </span>
+                        <span class="text-golden" id="currentStonesDisplay">{{ current_user.spiritual_stones }}</span>
+                    </div>
+                    <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_css %}
@@ -431,6 +777,116 @@
     width: 20px;
     border-radius: 50%;
     cursor: pointer;
+}
+
+/* Special Ability Badges */
+.ability-badge {
+    display: inline-block;
+    padding: 0.25rem 0.4rem;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    border: 1px solid;
+}
+
+.ability-badge.dimensional-gate {
+    background: rgba(79, 172, 254, 0.2);
+    border-color: var(--celestial);
+    color: var(--celestial);
+}
+
+.ability-badge.time-acceleration {
+    background: rgba(255, 215, 0, 0.2);
+    border-color: var(--golden);
+    color: var(--golden);
+}
+
+.ability-badge.auto-cultivation {
+    background: rgba(142, 45, 226, 0.2);
+    border-color: var(--purple);
+    color: var(--purple);
+}
+
+.ability-badge.resource-multiplication {
+    background: rgba(40, 167, 69, 0.2);
+    border-color: #28a745;
+    color: #28a745;
+}
+
+/* Special Upgrade Cards */
+.special-upgrade-card {
+    background: rgba(26, 26, 46, 0.8);
+    border: 2px solid rgba(255, 215, 0, 0.3);
+    border-radius: 12px;
+    padding: 1rem;
+    height: 100%;
+    transition: all 0.3s ease;
+}
+
+.special-upgrade-card:hover {
+    border-color: var(--golden);
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+    transform: translateY(-2px);
+}
+
+.upgrade-option {
+    background: rgba(15, 15, 35, 0.5);
+    border-radius: 8px;
+    padding: 1rem;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Progress bars with different colors */
+.progress-bar-purple {
+    background: linear-gradient(90deg, var(--purple), #b83dff);
+}
+
+.progress-bar-success {
+    background: linear-gradient(90deg, #28a745, #20c997);
+}
+
+.progress-bar-info {
+    background: linear-gradient(90deg, #17a2b8, #20c997);
+}
+
+/* Dropdown menu dark theme */
+.dropdown-menu-dark {
+    background: rgba(26, 26, 46, 0.95);
+    border: 1px solid rgba(255, 215, 0, 0.3);
+}
+
+.dropdown-menu-dark .dropdown-item {
+    color: #e0e6ed;
+}
+
+.dropdown-menu-dark .dropdown-item:hover {
+    background: rgba(255, 215, 0, 0.2);
+    color: var(--golden);
+}
+
+/* World level info styling */
+.world-level-info {
+    background: rgba(15, 15, 35, 0.3);
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid rgba(255, 215, 0, 0.2);
+}
+
+/* Special resources grid */
+.special-resources {
+    background: rgba(26, 26, 46, 0.3);
+    border-radius: 6px;
+    padding: 0.5rem;
+}
+
+/* Ability activation animations */
+.ability-activation {
+    animation: abilityGlow 0.5s ease-out;
+}
+
+@keyframes abilityGlow {
+    0% { box-shadow: none; }
+    50% { box-shadow: 0 0 20px var(--celestial); }
+    100% { box-shadow: none; }
 }
 
 .world-card {
@@ -728,6 +1184,328 @@ function createWorldFree() {
         button.innerHTML = originalText;
         button.disabled = false;
     });
+}
+
+// Advanced World Management Functions
+let currentWorldId = null;
+
+function openUpgradeModal(worldId) {
+    currentWorldId = worldId;
+    
+    // Fetch world data and populate modal
+    fetch(`/api/get-world-details/${worldId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                populateUpgradeModal(data.world);
+                
+                const modal = new bootstrap.Modal(document.getElementById('upgradeWorldModal'));
+                modal.show();
+            } else {
+                alert('Không thể tải thông tin thế giới!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            // Fallback - open modal anyway
+            const modal = new bootstrap.Modal(document.getElementById('upgradeWorldModal'));
+            modal.show();
+        });
+}
+
+function populateUpgradeModal(world) {
+    // Update modal title
+    document.getElementById('upgradeWorldName').textContent = world.name || 'Thế Giới';
+    
+    // Update current values
+    document.getElementById('spiritual_density_progress').style.width = (world.spiritual_density || 50) + '%';
+    document.getElementById('resource_richness_progress').style.width = (world.resource_richness || 50) + '%';
+    document.getElementById('barrier_strength_progress').style.width = (world.barrier_strength || 0) + '%';
+    
+    document.getElementById('current_world_level').textContent = world.world_level || 1;
+    document.getElementById('current_guardian_level').textContent = world.guardian_level || 0;
+    document.getElementById('current_market_level').textContent = world.market_level || 0;
+    
+    // Update special ability buttons
+    updateSpecialAbilityButton('dimensional_gate', world.dimensional_gate);
+    updateSpecialAbilityButton('time_acceleration', world.time_acceleration);
+    updateSpecialAbilityButton('resource_multiplication', world.resource_multiplication);
+    updateSpecialAbilityButton('auto_cultivation', world.auto_cultivation);
+}
+
+function updateSpecialAbilityButton(abilityType, isUnlocked) {
+    const button = document.getElementById(`btn_${abilityType}`);
+    if (button) {
+        if (isUnlocked) {
+            button.innerHTML = '<i class="fas fa-check me-2"></i>Đã Mở Khóa';
+            button.disabled = true;
+            button.classList.remove('btn-celestial', 'btn-golden', 'btn-purple');
+            button.classList.add('btn-success');
+        }
+    }
+}
+
+function performUpgrade(upgradeType) {
+    if (!currentWorldId) {
+        alert('Lỗi: Không xác định được thế giới!');
+        return;
+    }
+    
+    if (!confirm(`Bạn có chắc muốn nâng cấp ${getUpgradeName(upgradeType)}?`)) {
+        return;
+    }
+    
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Đang nâng cấp...';
+    button.disabled = true;
+    
+    fetch(`/api/upgrade-world/${currentWorldId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ upgrade_type: upgradeType })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showUpgradeSuccess(data.message, upgradeType);
+            updateModalValues(data.world);
+            updateCurrentStones(data.world.current_stones);
+        } else {
+            alert('Lỗi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi nâng cấp!');
+    })
+    .finally(() => {
+        button.innerHTML = originalText;
+        button.disabled = false;
+    });
+}
+
+function getUpgradeName(upgradeType) {
+    const names = {
+        'spiritual_density': 'Mật Độ Linh Khí',
+        'resource_richness': 'Độ Phong Phú Tài Nguyên',
+        'world_level': 'Cấp Độ Thế Giới',
+        'barrier_strength': 'Sức Mạnh Kết Giới',
+        'guardian_level': 'Thủ Hộ Thần',
+        'cultivation_bonus': 'Bonus Tu Luyện',
+        'market_level': 'Chợ Búa',
+        'infrastructure': 'Cơ Sở Hạ Tầng',
+        'dimensional_gate': 'Cổng Không Gian',
+        'time_acceleration': 'Tăng Tốc Thời Gian',
+        'auto_cultivation': 'Tự Động Tu Luyện',
+        'resource_multiplication': 'Nhân Tài Nguyên'
+    };
+    return names[upgradeType] || upgradeType;
+}
+
+function showUpgradeSuccess(message, upgradeType) {
+    // Create success effect
+    const effect = document.createElement('div');
+    effect.className = 'upgrade-success-effect';
+    effect.innerHTML = `
+        <div class="upgrade-effect-content">
+            <i class="fas fa-arrow-up text-golden" style="font-size: 3rem;"></i>
+            <h4 class="text-golden mt-2">${message}</h4>
+        </div>
+    `;
+    effect.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(26, 26, 46, 0.9);
+        padding: 2rem;
+        border-radius: 10px;
+        border: 2px solid var(--golden);
+        z-index: 10001;
+        animation: upgradeSuccess 2s ease-out forwards;
+    `;
+    
+    if (!document.getElementById('upgrade-success-style')) {
+        const style = document.createElement('style');
+        style.id = 'upgrade-success-style';
+        style.textContent = `
+            @keyframes upgradeSuccess {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(effect);
+    setTimeout(() => effect.remove(), 2000);
+}
+
+function updateModalValues(world) {
+    // Update progress bars
+    if (world.spiritual_density !== undefined) {
+        document.getElementById('spiritual_density_progress').style.width = world.spiritual_density + '%';
+    }
+    if (world.resource_richness !== undefined) {
+        document.getElementById('resource_richness_progress').style.width = world.resource_richness + '%';
+    }
+    if (world.barrier_strength !== undefined) {
+        document.getElementById('barrier_strength_progress').style.width = world.barrier_strength + '%';
+    }
+    
+    // Update level displays
+    if (world.world_level !== undefined) {
+        document.getElementById('current_world_level').textContent = world.world_level;
+    }
+    if (world.guardian_level !== undefined) {
+        document.getElementById('current_guardian_level').textContent = world.guardian_level;
+    }
+    if (world.market_level !== undefined) {
+        document.getElementById('current_market_level').textContent = world.market_level;
+    }
+    
+    // Update special abilities
+    updateSpecialAbilityButton('dimensional_gate', world.dimensional_gate);
+    updateSpecialAbilityButton('time_acceleration', world.time_acceleration);
+    updateSpecialAbilityButton('resource_multiplication', world.resource_multiplication);
+    updateSpecialAbilityButton('auto_cultivation', world.auto_cultivation);
+}
+
+function harvestWorld(worldId) {
+    if (!confirm('Thu hoạch tài nguyên từ thế giới này?')) return;
+    
+    fetch(`/api/harvest-world/${worldId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            let message = `Thu hoạch thành công!\n\n`;
+            message += `• Linh Thạch: +${data.resources.spiritual_stones}\n`;
+            if (data.resources.special_resources && Object.keys(data.resources.special_resources).length > 0) {
+                message += `• Tài nguyên đặc biệt:\n`;
+                Object.entries(data.resources.special_resources).forEach(([resource, amount]) => {
+                    const resourceNames = {
+                        'spiritual_herbs': 'Linh Thảo',
+                        'essence_crystals': 'Tinh Thể Tinh Hoa', 
+                        'ancient_artifacts': 'Cổ Vật'
+                    };
+                    message += `  - ${resourceNames[resource] || resource}: +${amount}\n`;
+                });
+            }
+            if (data.multiplier > 1) {
+                message += `\n• Bonus nhân: x${data.multiplier}`;
+            }
+            alert(message);
+            
+            // Optional: refresh page to show updated resources
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            alert('Lỗi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi thu hoạch!');
+    });
+}
+
+function activateAbility(worldId, abilityType) {
+    if (!confirm(`Kích hoạt khả năng đặc biệt: ${getAbilityName(abilityType)}?`)) return;
+    
+    fetch(`/api/activate-world-ability/${worldId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ ability_type: abilityType })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Show ability activation effect
+            showAbilityActivation(abilityType);
+            alert(data.message);
+            
+            // Refresh to show updated stats
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            alert('Lỗi: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra khi kích hoạt khả năng!');
+    });
+}
+
+function getAbilityName(abilityType) {
+    const names = {
+        'time_acceleration': 'Tăng Tốc Thời Gian',
+        'dimensional_gate': 'Mở Cổng Không Gian',
+        'mass_cultivation': 'Tu Luyện Hàng Loạt'
+    };
+    return names[abilityType] || abilityType;
+}
+
+function showAbilityActivation(abilityType) {
+    const icons = {
+        'time_acceleration': 'fas fa-clock',
+        'dimensional_gate': 'fas fa-portal-enter',
+        'mass_cultivation': 'fas fa-atom'
+    };
+    
+    const effect = document.createElement('div');
+    effect.className = 'ability-activation-effect';
+    effect.innerHTML = `
+        <div class="ability-effect-content text-center">
+            <i class="${icons[abilityType] || 'fas fa-magic'} text-celestial" style="font-size: 4rem; animation: pulse 1s infinite;"></i>
+            <h3 class="text-celestial mt-3">Khả Năng Kích Hoạt!</h3>
+        </div>
+    `;
+    effect.style.cssText = `
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(79, 172, 254, 0.3), rgba(0, 0, 0, 0.8));
+        z-index: 10000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: abilityFade 3s ease-out forwards;
+    `;
+    
+    if (!document.getElementById('ability-activation-style')) {
+        const style = document.createElement('style');
+        style.id = 'ability-activation-style';
+        style.textContent = `
+            @keyframes abilityFade {
+                0% { opacity: 0; }
+                20% { opacity: 1; }
+                80% { opacity: 1; }
+                100% { opacity: 0; }
+            }
+            @keyframes pulse {
+                0% { transform: scale(1); }
+                50% { transform: scale(1.1); }
+                100% { transform: scale(1); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(effect);
+    setTimeout(() => effect.remove(), 3000);
 }
 </script>
 {% endblock %}

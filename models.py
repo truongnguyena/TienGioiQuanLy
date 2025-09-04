@@ -123,21 +123,106 @@ class World(db.Model):
     world_type = db.Column(db.String(50))  # Linh Giới, Ma Cảnh, Thiên Giới, etc.
     description = db.Column(db.Text)
     
-    # World properties
+    # Core World properties
     spiritual_density = db.Column(db.Integer, default=50)  # 0-100
     danger_level = db.Column(db.Integer, default=1)  # 1-10
     resource_richness = db.Column(db.Integer, default=50)  # 0-100
     
-    # Resources
+    # New Advanced Properties
+    world_level = db.Column(db.Integer, default=1)  # Level thế giới
+    world_experience = db.Column(db.Integer, default=0)  # Kinh nghiệm thế giới
+    stability = db.Column(db.Integer, default=100)  # Độ ổn định (0-100)
+    magical_resonance = db.Column(db.Integer, default=50)  # Cộng hưởng ma pháp
+    time_flow_rate = db.Column(db.Float, default=1.0)  # Tốc độ thời gian (0.5x - 3.0x)
+    gravity_strength = db.Column(db.Float, default=1.0)  # Lực hấp dẫn
+    
+    # Defensive Systems
+    barrier_strength = db.Column(db.Integer, default=0)  # Độ bền kết giới
+    guardian_level = db.Column(db.Integer, default=0)  # Level thủ hộ thần
+    trap_density = db.Column(db.Integer, default=0)  # Mật độ bẫy
+    
+    # Economic Systems
     spiritual_stones_production = db.Column(db.Integer, default=100)
     rare_materials_count = db.Column(db.Integer, default=0)
+    daily_income = db.Column(db.Integer, default=0)
+    trade_routes = db.Column(db.Integer, default=0)  # Số tuyến thương mại
+    market_level = db.Column(db.Integer, default=0)  # Cấp độ chợ búa
     
-    # Status
+    # Special Resources
+    spiritual_herbs = db.Column(db.Integer, default=0)  # Linh thảo
+    ancient_artifacts = db.Column(db.Integer, default=0)  # Cổ vật
+    essence_crystals = db.Column(db.Integer, default=0)  # Tinh thể tinh hoa
+    dragon_scales = db.Column(db.Integer, default=0)  # Vảy rồng
+    phoenix_feathers = db.Column(db.Integer, default=0)  # Lông phượng hoàng
+    
+    # Environmental Features
+    climate_control = db.Column(db.Integer, default=0)  # Kiểm soát khí hậu
+    terrain_complexity = db.Column(db.Integer, default=1)  # Độ phức tạp địa hình
+    ecosystem_diversity = db.Column(db.Integer, default=1)  # Đa dạng sinh thái
+    natural_wonders = db.Column(db.Integer, default=0)  # Kỳ quan thiên nhiên
+    
+    # Cultivation Enhancement
+    cultivation_bonus = db.Column(db.Float, default=1.0)  # Bonus tu luyện
+    breakthrough_chance = db.Column(db.Float, default=0.1)  # Cơ hội đột phá
+    enlightenment_spots = db.Column(db.Integer, default=0)  # Điểm ngộ đạo
+    
+    # Population and Development
+    population_limit = db.Column(db.Integer, default=100)  # Giới hạn dân số
+    current_population = db.Column(db.Integer, default=0)  # Dân số hiện tại
+    development_level = db.Column(db.Integer, default=1)  # Mức phát triển
+    infrastructure_level = db.Column(db.Integer, default=1)  # Cấp cơ sở hạ tầng
+    
+    # Special Abilities
+    dimensional_gate = db.Column(db.Boolean, default=False)  # Cổng không gian
+    time_acceleration = db.Column(db.Boolean, default=False)  # Tăng tốc thời gian
+    resource_multiplication = db.Column(db.Boolean, default=False)  # Nhân tài nguyên
+    auto_cultivation = db.Column(db.Boolean, default=False)  # Tự động tu luyện
+    
+    # Status and History
     owner_id = db.Column(db.Integer, db.ForeignKey('user.id'))
     is_contested = db.Column(db.Boolean, default=False)
     last_explored = db.Column(db.DateTime)
+    last_upgraded = db.Column(db.DateTime)
+    total_upgrades = db.Column(db.Integer, default=0)
+    
+    # Combat and Events
+    last_attacked = db.Column(db.DateTime)
+    successful_defenses = db.Column(db.Integer, default=0)
+    special_events_count = db.Column(db.Integer, default=0)
     
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    def get_total_power(self):
+        """Tính tổng sức mạnh thế giới"""
+        base_power = (self.world_level * 1000) + (self.spiritual_density * 10) + (self.resource_richness * 5)
+        defensive_power = (self.barrier_strength * 20) + (self.guardian_level * 100) + (self.trap_density * 15)
+        special_power = sum([
+            self.dimensional_gate * 500,
+            self.time_acceleration * 300,
+            self.resource_multiplication * 400,
+            self.auto_cultivation * 600
+        ])
+        return base_power + defensive_power + special_power
+    
+    def get_upgrade_cost(self, upgrade_type):
+        """Tính chi phí nâng cấp"""
+        base_costs = {
+            'spiritual_density': 5000,
+            'resource_richness': 5000,
+            'world_level': 10000,
+            'barrier_strength': 8000,
+            'guardian_level': 15000,
+            'cultivation_bonus': 12000,
+            'dimensional_gate': 50000,
+            'time_acceleration': 40000,
+            'auto_cultivation': 60000,
+            'market_level': 7000,
+            'infrastructure': 6000
+        }
+        
+        base_cost = base_costs.get(upgrade_type, 5000)
+        level_multiplier = (self.world_level + getattr(self, upgrade_type.replace('_level', ''), 0)) // 2 + 1
+        return base_cost * level_multiplier
 
 class GuildWar(db.Model):
     id = db.Column(db.Integer, primary_key=True)

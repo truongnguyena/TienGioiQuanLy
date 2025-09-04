@@ -439,36 +439,119 @@ def upgrade_world(world_id):
         return jsonify({'success': False, 'error': 'Dữ liệu JSON không hợp lệ!'})
 
     upgrade_type = request.json.get('upgrade_type')
-
-    # Calculate upgrade cost
-    base_cost = 5000
-    level_multiplier = (world.spiritual_density + world.resource_richness + world.danger_level) // 10
-    upgrade_cost = base_cost * (level_multiplier + 1)
+    upgrade_cost = world.get_upgrade_cost(upgrade_type)
 
     if current_user.spiritual_stones < upgrade_cost:
         return jsonify({'success': False, 'error': f'Cần {upgrade_cost} linh thạch để nâng cấp!'})
 
-    # Apply upgrade
-    if upgrade_type == 'spiritual_density':
-        if world.spiritual_density >= 100:
-            return jsonify({'success': False, 'error': 'Mật độ linh khí đã đạt tối đa!'})
-        world.spiritual_density = min(100, world.spiritual_density + 10)
-        upgrade_name = 'Mật Độ Linh Khí'
-    elif upgrade_type == 'resource_richness':
-        if world.resource_richness >= 100:
-            return jsonify({'success': False, 'error': 'Độ phong phú tài nguyên đã đạt tối đa!'})
-        world.resource_richness = min(100, world.resource_richness + 10)
-        upgrade_name = 'Độ Phong Phú Tài Nguyên'
-    elif upgrade_type == 'production':
-        world.spiritual_stones_production += 50
-        upgrade_name = 'Sản Xuất Linh Thạch'
-    else:
-        return jsonify({'success': False, 'error': 'Loại nâng cấp không hợp lệ!'})
-
-    # Deduct cost
-    current_user.spiritual_stones -= upgrade_cost
-
+    # Apply upgrade based on type
+    upgrade_name = ''
+    upgrade_success = True
+    
     try:
+        if upgrade_type == 'spiritual_density':
+            if world.spiritual_density >= 100:
+                return jsonify({'success': False, 'error': 'Mật độ linh khí đã đạt tối đa!'})
+            world.spiritual_density = min(100, world.spiritual_density + 10)
+            upgrade_name = 'Mật Độ Linh Khí'
+            
+        elif upgrade_type == 'resource_richness':
+            if world.resource_richness >= 100:
+                return jsonify({'success': False, 'error': 'Độ phong phú tài nguyên đã đạt tối đa!'})
+            world.resource_richness = min(100, world.resource_richness + 10)
+            upgrade_name = 'Độ Phong Phú Tài Nguyên'
+            
+        elif upgrade_type == 'world_level':
+            world.world_level += 1
+            world.world_experience = 0
+            world.population_limit += 50
+            world.daily_income += world.world_level * 100
+            upgrade_name = f'Cấp Thế Giới (Lv.{world.world_level})'
+            
+        elif upgrade_type == 'barrier_strength':
+            if world.barrier_strength >= 100:
+                return jsonify({'success': False, 'error': 'Kết giới đã đạt tối đa!'})
+            world.barrier_strength = min(100, world.barrier_strength + 15)
+            upgrade_name = 'Sức Mạnh Kết Giới'
+            
+        elif upgrade_type == 'guardian_level':
+            world.guardian_level += 1
+            world.successful_defenses += world.guardian_level
+            upgrade_name = f'Thủ Hộ Thần (Lv.{world.guardian_level})'
+            
+        elif upgrade_type == 'cultivation_bonus':
+            world.cultivation_bonus = min(3.0, world.cultivation_bonus + 0.2)
+            world.breakthrough_chance = min(0.5, world.breakthrough_chance + 0.05)
+            upgrade_name = 'Bonus Tu Luyện'
+            
+        elif upgrade_type == 'market_level':
+            world.market_level += 1
+            world.trade_routes += 2
+            world.daily_income += world.market_level * 200
+            upgrade_name = f'Chợ Búa (Lv.{world.market_level})'
+            
+        elif upgrade_type == 'infrastructure':
+            world.infrastructure_level += 1
+            world.development_level = min(10, world.development_level + 1)
+            world.population_limit += 100
+            upgrade_name = f'Cơ Sở Hạ Tầng (Lv.{world.infrastructure_level})'
+            
+        elif upgrade_type == 'climate_control':
+            world.climate_control = min(10, world.climate_control + 1)
+            world.ecosystem_diversity = min(10, world.ecosystem_diversity + 1)
+            upgrade_name = 'Kiểm Soát Khí Hậu'
+            
+        elif upgrade_type == 'enlightenment_spots':
+            world.enlightenment_spots += 1
+            world.cultivation_bonus += 0.1
+            upgrade_name = 'Điểm Ngộ Đạo'
+            
+        elif upgrade_type == 'dimensional_gate':
+            if world.dimensional_gate:
+                return jsonify({'success': False, 'error': 'Cổng không gian đã được kích hoạt!'})
+            world.dimensional_gate = True
+            world.trade_routes += 10
+            upgrade_name = 'Cổng Không Gian'
+            
+        elif upgrade_type == 'time_acceleration':
+            if world.time_acceleration:
+                return jsonify({'success': False, 'error': 'Tăng tốc thời gian đã được kích hoạt!'})
+            world.time_acceleration = True
+            world.time_flow_rate = 2.0
+            world.cultivation_bonus += 0.5
+            upgrade_name = 'Tăng Tốc Thời Gian'
+            
+        elif upgrade_type == 'auto_cultivation':
+            if world.auto_cultivation:
+                return jsonify({'success': False, 'error': 'Tự động tu luyện đã được kích hoạt!'})
+            world.auto_cultivation = True
+            world.cultivation_bonus += 1.0
+            upgrade_name = 'Tự Động Tu Luyện'
+            
+        elif upgrade_type == 'resource_multiplication':
+            if world.resource_multiplication:
+                return jsonify({'success': False, 'error': 'Nhân tài nguyên đã được kích hoạt!'})
+            world.resource_multiplication = True
+            world.spiritual_stones_production *= 2
+            world.daily_income *= 2
+            upgrade_name = 'Nhân Tài Nguyên'
+            
+        else:
+            return jsonify({'success': False, 'error': 'Loại nâng cấp không hợp lệ!'})
+
+        # Deduct cost and update world stats
+        current_user.spiritual_stones -= upgrade_cost
+        world.total_upgrades += 1
+        world.last_upgraded = datetime.utcnow()
+        world.world_experience += 100
+
+        # Check for world level up
+        required_exp = world.world_level * 500
+        if world.world_experience >= required_exp:
+            world.world_level += 1
+            world.world_experience = 0
+            world.stability = min(100, world.stability + 10)
+
         db.session.commit()
 
         return jsonify({
@@ -476,9 +559,20 @@ def upgrade_world(world_id):
             'message': f'Nâng cấp {upgrade_name} thành công!',
             'upgrade_cost': upgrade_cost,
             'world': {
+                'world_level': world.world_level,
                 'spiritual_density': world.spiritual_density,
                 'resource_richness': world.resource_richness,
-                'production': world.spiritual_stones_production
+                'production': world.spiritual_stones_production,
+                'barrier_strength': world.barrier_strength,
+                'guardian_level': world.guardian_level,
+                'cultivation_bonus': world.cultivation_bonus,
+                'market_level': world.market_level,
+                'infrastructure_level': world.infrastructure_level,
+                'total_power': world.get_total_power(),
+                'dimensional_gate': world.dimensional_gate,
+                'time_acceleration': world.time_acceleration,
+                'auto_cultivation': world.auto_cultivation,
+                'resource_multiplication': world.resource_multiplication
             }
         })
     except Exception as e:
@@ -1327,9 +1421,10 @@ def conquer_world(world_id):
     if world.owner_id:
         return jsonify({'success': False, 'error': 'Thế giới này đã có chủ!'})
     
-    # Tính chi phí chinh phục
-    conquest_cost = world.danger_level * 5000
-    power_requirement = world.danger_level * 10000
+    # Tính chi phí chinh phục dựa trên sức mạnh thế giới
+    world_power = world.get_total_power()
+    conquest_cost = max(5000, world_power // 2)
+    power_requirement = world_power
     
     # Kiểm tra điều kiện
     if current_user.spiritual_stones < conquest_cost:
@@ -1341,19 +1436,24 @@ def conquer_world(world_id):
     try:
         # Trừ chi phí
         current_user.spiritual_stones -= conquest_cost
-        current_user.spiritual_power -= power_requirement // 2  # Mất một nửa sức mạnh do chiến đấu
+        current_user.spiritual_power -= power_requirement // 3  # Mất 1/3 sức mạnh do chiến đấu
         
         # Chuyển quyền sở hữu
         world.owner_id = current_user.id
         world.is_contested = False
+        world.last_attacked = datetime.utcnow()
+        
+        # Bonus chinh phục
+        world.spiritual_stones_production += 50
+        world.stability = max(50, world.stability - 20)  # Giảm ổn định sau chinh phục
         
         # Thêm achievement
         achievement = Achievement(
             user_id=current_user.id,
             title=f"Chinh Phục {world.name}",
-            description=f"Đã chinh phục thành công thế giới {world.name}",
+            description=f"Đã chinh phục thành công thế giới {world.name} với sức mạnh {world_power}",
             category="conquest",
-            rarity="rare"
+            rarity="epic" if world_power > 10000 else "rare"
         )
         db.session.add(achievement)
         
@@ -1361,16 +1461,129 @@ def conquer_world(world_id):
         
         return jsonify({
             'success': True,
-            'message': f'Đã chinh phục {world.name}! Chi phí: {conquest_cost} linh thạch',
+            'message': f'Đã chinh phục {world.name}! Chi phí: {conquest_cost:,} linh thạch',
             'world': {
                 'name': world.name,
-                'production': world.spiritual_stones_production
+                'production': world.spiritual_stones_production,
+                'total_power': world.get_total_power()
             }
         })
         
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Lỗi khi chinh phục thế giới!'})
+
+@app.route('/api/harvest-world/<int:world_id>', methods=['POST'])
+@login_required
+def harvest_world(world_id):
+    """Thu hoạch tài nguyên từ thế giới"""
+    world = World.query.get_or_404(world_id)
+    
+    if world.owner_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Bạn không sở hữu thế giới này!'})
+    
+    try:
+        # Tính toán tài nguyên thu hoạch
+        base_harvest = world.daily_income or world.spiritual_stones_production
+        
+        # Bonus từ các tính năng đặc biệt
+        multiplier = 1.0
+        if world.resource_multiplication:
+            multiplier *= 2.0
+        if world.time_acceleration:
+            multiplier *= 1.5
+        if world.market_level > 0:
+            multiplier *= (1 + world.market_level * 0.1)
+        
+        total_harvest = int(base_harvest * multiplier)
+        
+        # Thu hoạch tài nguyên đặc biệt
+        special_resources = {}
+        if world.resource_richness >= 80:
+            special_resources['spiritual_herbs'] = random.randint(1, world.resource_richness // 20)
+            world.spiritual_herbs += special_resources['spiritual_herbs']
+        
+        if world.spiritual_density >= 90:
+            special_resources['essence_crystals'] = random.randint(1, world.spiritual_density // 30)
+            world.essence_crystals += special_resources['essence_crystals']
+        
+        if world.world_level >= 5:
+            special_resources['ancient_artifacts'] = random.randint(0, world.world_level // 5)
+            world.ancient_artifacts += special_resources['ancient_artifacts']
+        
+        # Cập nhật tài nguyên người chơi
+        current_user.spiritual_stones += total_harvest
+        
+        # Cập nhật thống kê thế giới
+        world.world_experience += 10
+        world.special_events_count += 1
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Thu hoạch thành công từ {world.name}!',
+            'resources': {
+                'spiritual_stones': total_harvest,
+                'special_resources': special_resources
+            },
+            'multiplier': multiplier
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Lỗi khi thu hoạch!'})
+
+@app.route('/api/activate-world-ability/<int:world_id>', methods=['POST'])
+@login_required
+def activate_world_ability(world_id):
+    """Kích hoạt khả năng đặc biệt của thế giới"""
+    world = World.query.get_or_404(world_id)
+    
+    if world.owner_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Bạn không sở hữu thế giới này!'})
+    
+    data = request.json or {}
+    ability_type = data.get('ability_type')
+    
+    try:
+        if ability_type == 'time_acceleration' and world.time_acceleration:
+            # Tăng tốc tu luyện trong 1 giờ
+            bonus_power = int(current_user.spiritual_power * 0.1)
+            current_user.spiritual_power += bonus_power
+            message = f'Tăng tốc thời gian! +{bonus_power} linh lực'
+            
+        elif ability_type == 'dimensional_gate' and world.dimensional_gate:
+            # Mở cổng đến thế giới khác (bonus tài nguyên)
+            bonus_stones = world.world_level * 1000
+            current_user.spiritual_stones += bonus_stones
+            message = f'Mở cổng không gian! +{bonus_stones} linh thạch'
+            
+        elif ability_type == 'mass_cultivation' and world.auto_cultivation:
+            # Tu luyện hàng loạt
+            bonus_power = int(world.cultivation_bonus * 500)
+            bonus_points = world.enlightenment_spots * 100
+            current_user.spiritual_power += bonus_power
+            current_user.cultivation_points += bonus_points
+            message = f'Tu luyện hàng loạt! +{bonus_power} linh lực, +{bonus_points} điểm tu luyện'
+            
+        else:
+            return jsonify({'success': False, 'error': 'Khả năng không khả dụng!'})
+        
+        # Giảm ổn định thế giới sau khi sử dụng khả năng
+        world.stability = max(0, world.stability - 10)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'world_stability': world.stability
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Lỗi khi kích hoạt khả năng!'})
 
 @app.route('/api/refresh-war-predictions', methods=['GET'])
 @login_required
@@ -1419,3 +1632,52 @@ def refresh_war_predictions():
 
     except Exception as e:
         return jsonify({'success': False, 'error': f'Lỗi khi tải dự đoán: {str(e)}'})
+
+@app.route('/api/get-world-details/<int:world_id>', methods=['GET'])
+@login_required
+def get_world_details(world_id):
+    """Lấy thông tin chi tiết thế giới"""
+    world = World.query.get_or_404(world_id)
+    
+    if world.owner_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Bạn không sở hữu thế giới này!'})
+    
+    try:
+        world_data = {
+            'id': world.id,
+            'name': world.name,
+            'world_type': world.world_type,
+            'world_level': world.world_level or 1,
+            'world_experience': world.world_experience or 0,
+            'spiritual_density': world.spiritual_density or 50,
+            'resource_richness': world.resource_richness or 50,
+            'stability': world.stability or 100,
+            'barrier_strength': world.barrier_strength or 0,
+            'guardian_level': world.guardian_level or 0,
+            'market_level': world.market_level or 0,
+            'infrastructure_level': world.infrastructure_level or 1,
+            'cultivation_bonus': world.cultivation_bonus or 1.0,
+            'enlightenment_spots': world.enlightenment_spots or 0,
+            'spiritual_stones_production': world.spiritual_stones_production or 100,
+            'daily_income': world.daily_income or 0,
+            'dimensional_gate': world.dimensional_gate or False,
+            'time_acceleration': world.time_acceleration or False,
+            'auto_cultivation': world.auto_cultivation or False,
+            'resource_multiplication': world.resource_multiplication or False,
+            'total_power': world.get_total_power(),
+            'special_resources': {
+                'spiritual_herbs': world.spiritual_herbs or 0,
+                'ancient_artifacts': world.ancient_artifacts or 0,
+                'essence_crystals': world.essence_crystals or 0,
+                'dragon_scales': world.dragon_scales or 0,
+                'phoenix_feathers': world.phoenix_feathers or 0
+            }
+        }
+        
+        return jsonify({
+            'success': True,
+            'world': world_data
+        })
+        
+    except Exception as e:
+        return jsonify({'success': False, 'error': f'Lỗi khi tải thông tin: {str(e)}'})
