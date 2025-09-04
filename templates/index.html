@@ -183,7 +183,13 @@
                     <h5 class="achievement-title text-purple">{{ achievement.title }}</h5>
                     <p class="achievement-user text-golden">{{ achievement.user.dao_name or achievement.user.username }}</p>
                     <p class="achievement-desc">{{ achievement.description }}</p>
-                    <small class="text-muted">{{ achievement.earned_at.strftime('%d/%m/%Y %H:%M') }}</small>
+                    <small class="text-muted">
+                        {% if achievement.earned_at %}
+                            {{ achievement.earned_at.strftime('%d/%m/%Y %H:%M') }}
+                        {% else %}
+                            Vừa đạt được
+                        {% endif %}
+                    </small>
                 </div>
             </div>
             {% endfor %}
