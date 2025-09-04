@@ -70,7 +70,7 @@
                                             <h5 class="text-golden mt-3">{{ user.dao_name or user.username }}</h5>
                                             <p class="text-celestial mb-2">{{ user.cultivation_level }}</p>
                                             <div class="power-display">
-                                                <span class="power-number">{{ "{:,}".format(user.spiritual_power) }}</span>
+                                                <span class="power-number">{{ "{:,}".format(user.spiritual_power or 0) }}</span>
                                                 <small class="text-light d-block">Linh Lực</small>
                                             </div>
                                             {% if user.guild %}
@@ -126,7 +126,7 @@
                                                 <span class="cultivation-badge">{{ user.cultivation_level }}</span>
                                             </td>
                                             <td>
-                                                <span class="power-text text-purple">{{ "{:,}".format(user.spiritual_power) }}</span>
+                                                <span class="power-text text-purple">{{ "{:,}".format(user.spiritual_power or 0) }}</span>
                                             </td>
                                             <td>
                                                 {% if user.guild %}
