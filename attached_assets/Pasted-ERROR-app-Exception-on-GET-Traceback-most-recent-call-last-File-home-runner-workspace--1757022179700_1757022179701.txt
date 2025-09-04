@@ -1,0 +1,77 @@
+ERROR:app:Exception on / [GET]
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+psycopg2.errors.UndefinedColumn: column world.world_level does not exist
+LINE 2: ...rld.resource_richness AS world_resource_richness, world.worl...
+                                                             ^
+
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/routes.py", line 31, in index
+    'total_worlds': World.query.count(),
+                    ^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 3146, in count
+    self._legacy_from_self(col).enable_eagerloads(False).scalar()
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2835, in scalar
+    ret = self.one()
+          ^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2808, in one
+    return self._iter().one()  # type: ignore
+           ^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/query.py", line 2857, in _iter
+    result: Union[ScalarResult[_T], Result[_T]] = self.session.execute(
+                                                  ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2365, in execute
+    return self._execute_internal(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/session.py", line 2251, in _execute_internal
+    result: Result[Any] = compile_state_cls.orm_execute_statement(
+                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/orm/context.py", line 306, in orm_execute_statement
+    result = conn.execute(
+             ^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1419, in execute
+    return meth(
+           ^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/sql/elements.py", line 526, in _execute_on_connection
+    return connection._execute_clauseelement(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1641, in _execute_clauseelement
+    ret = self._execute_context(
+          ^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1846, in _execute_context
+    return self._exec_single_context(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1986, in _exec_single_context
+    self._handle_dbapi_exception(
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 2355, in _handle_dbapi_exception
+    raise sqlalchemy_exception.with_traceback(exc_info[2]) from e
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/base.py", line 1967, in _exec_single_context
+    self.dialect.do_execute(
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/sqlalchemy/engine/default.py", line 951, in do_execute
+    cursor.execute(statement, parameters)
+sqlalchemy.exc.ProgrammingError: (psycopg2.errors.UndefinedColumn) column world.world_level does not exist
+LINE 2: ...rld.resource_richness AS world_resource_richness, world.worl...
+                                                             ^
+
+[SQL: SELECT count(*) AS count_1 
+FROM (SELECT world.id AS world_id, world.name AS world_name, world.world_type AS world_world_type, world.description AS world_description, world.spiritual_density AS world_spiritual_density, world.danger_level AS world_danger_level, world.resource_richness AS world_resource_richness, world.world_level AS world_world_level, world.world_experience AS world_world_experience, world.stability AS world_stability, world.magical_resonance AS world_magical_resonance, world.time_flow_rate AS world_time_flow_rate, world.gravity_strength AS world_gravity_strength, world.barrier_strength AS world_barrier_strength, world.guardian_level AS world_guardian_level, world.trap_density AS world_trap_density, world.spiritual_stones_production AS world_spiritual_stones_production, world.rare_materials_count AS world_rare_materials_count, world.daily_income AS world_daily_income, world.trade_routes AS world_trade_routes, world.market_level AS world_market_level, world.spiritual_herbs AS world_spiritual_herbs, world.ancient_artifacts AS world_ancient_artifacts, world.essence_crystals AS world_essence_crystals, world.dragon_scales AS world_dragon_scales, world.phoenix_feathers AS world_phoenix_feathers, world.climate_control AS world_climate_control, world.terrain_complexity AS world_terrain_complexity, world.ecosystem_diversity AS world_ecosystem_diversity, world.natural_wonders AS world_natural_wonders, world.cultivation_bonus AS world_cultivation_bonus, world.breakthrough_chance AS world_breakthrough_chance, world.enlightenment_spots AS world_enlightenment_spots, world.population_limit AS world_population_limit, world.current_population AS world_current_population, world.development_level AS world_development_level, world.infrastructure_level AS world_infrastructure_level, world.dimensional_gate AS world_dimensional_gate, world.time_acceleration AS world_time_acceleration, world.resource_multiplication AS world_resource_multiplication, world.auto_cultivation AS world_auto_cultivation, world.owner_id AS world_owner_id, world.is_contested AS world_is_contested, world.last_explored AS world_last_explored, world.last_upgraded AS world_last_upgraded, world.total_upgrades AS world_total_upgrades, world.last_attacked AS world_last_attacked, world.successful_defenses AS world_successful_defenses, world.special_events_count AS world_special_events_count, world.created_at AS world_created_at 
+FROM world) AS anon_1]
+(Background on this error at: https://sqlalche.me/e/20/f405)
