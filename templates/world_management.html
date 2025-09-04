@@ -351,6 +351,71 @@
 
 {% block extra_css %}
 <style>
+/* Fix modal input styling */
+.mystical-modal .form-control,
+.mystical-modal .mystical-input {
+    background: rgba(26, 26, 46, 0.9) !important;
+    border: 2px solid rgba(255, 215, 0, 0.3) !important;
+    color: #e0e6ed !important;
+    border-radius: 8px !important;
+}
+
+.mystical-modal .form-control:focus,
+.mystical-modal .mystical-input:focus {
+    background: rgba(26, 26, 46, 0.95) !important;
+    border-color: #ffd700 !important;
+    box-shadow: 0 0 0 0.2rem rgba(255, 215, 0, 0.25) !important;
+    color: #e0e6ed !important;
+}
+
+.mystical-modal .form-control::placeholder,
+.mystical-modal .mystical-input::placeholder {
+    color: rgba(224, 230, 237, 0.6) !important;
+}
+
+.mystical-modal .form-select option {
+    background: #1a1a2e !important;
+    color: #e0e6ed !important;
+}
+
+/* Ensure modal is properly layered */
+.modal.fade .modal-dialog {
+    transition: transform 0.3s ease-out;
+    transform: translate(0, -50px);
+}
+
+.modal.show .modal-dialog {
+    transform: none;
+}
+
+/* Make sure inputs are clickable */
+.mystical-modal input,
+.mystical-modal select,
+.mystical-modal textarea {
+    pointer-events: auto !important;
+    user-select: auto !important;
+}
+
+/* Range slider styling */
+.mystical-modal .form-range {
+    background: transparent;
+}
+
+.mystical-modal .form-range::-webkit-slider-track {
+    background: rgba(255, 215, 0, 0.3);
+    height: 6px;
+    border-radius: 3px;
+}
+
+.mystical-modal .form-range::-webkit-slider-thumb {
+    background: #ffd700;
+    border: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
 .world-card {
     background: rgba(142, 45, 226, 0.1);
     border: 1px solid rgba(142, 45, 226, 0.3);
