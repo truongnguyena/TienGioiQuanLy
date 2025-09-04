@@ -54,13 +54,19 @@ class GuildManager {
         
         const guildData = {
             name: formData.get('name'),
-            description: formData.get('description')
+            description: formData.get('description') || ''
         };
+
+        // Validate input
+        if (!guildData.name || guildData.name.trim().length < 3) {
+            window.tuTienApp.showNotification('Lỗi', 'Tên bang hội phải có ít nhất 3 ký tự!', 'error');
+            return;
+        }
 
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn ? submitBtn.innerHTML : '';
         if (submitBtn) {
-            showLoading(submitBtn);
+            this.showLoading(submitBtn);
         }
 
         try {
@@ -72,6 +78,10 @@ class GuildManager {
                 },
                 body: JSON.stringify(guildData)
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             const data = await response.json();
 
@@ -93,11 +103,26 @@ class GuildManager {
             }
         } catch (error) {
             console.error('Guild creation error:', error);
-            window.tuTienApp.showNotification('Lỗi Tạo Bang Hội', error.message, 'error');
+            const errorMsg = error.message || 'Không thể tạo bang hội. Vui lòng thử lại!';
+            window.tuTienApp.showNotification('Lỗi Tạo Bang Hội', errorMsg, 'error');
         } finally {
             if (submitBtn) {
-                hideLoading(submitBtn, originalText);
+                this.hideLoading(submitBtn, originalText);
             }
+        }
+    }
+
+    showLoading(button) {
+        if (button) {
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang xử lý...';
+            button.disabled = true;
+        }
+    }
+
+    hideLoading(button, originalText) {
+        if (button) {
+            button.innerHTML = originalText;
+            button.disabled = false;
         }
     }
 
@@ -184,11 +209,14 @@ class GuildManager {
 
     async handleWarDeclaration() {
         const form = document.getElementById('declareWarForm');
+        if (!form) return;
+
         const formData = new FormData(form);
         
         const warData = {
             target_guild_id: formData.get('target_guild_id'),
-            war_type: formData.get('war_type')
+            war_type: formData.get('war_type'),
+            war_reason: formData.get('war_reason') || ''
         };
 
         if (!warData.target_guild_id || !warData.war_type) {
@@ -199,7 +227,7 @@ class GuildManager {
         const submitBtn = form.querySelector('button[type="submit"]');
         const originalText = submitBtn ? submitBtn.innerHTML : '';
         if (submitBtn) {
-            showLoading(submitBtn);
+            this.showLoading(submitBtn);
         }
 
         try {
@@ -212,19 +240,23 @@ class GuildManager {
                 body: JSON.stringify(warData)
             });
 
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+
             const data = await response.json();
 
             if (data.success) {
                 this.showWarDeclarationEffect(warData.war_type);
                 window.tuTienApp.showNotification(
                     'Tuyên Chiến Thành Công!', 
-                    `Đã tuyên ${warData.war_type} với bang hội mục tiêu`, 
+                    data.message, 
                     'warning'
                 );
                 
                 // Close modal and refresh
                 const modal = bootstrap.Modal.getInstance(document.getElementById('declareWarModal'));
-                modal.hide();
+                if (modal) modal.hide();
                 
                 setTimeout(() => {
                     location.reload();
@@ -237,9 +269,97 @@ class GuildManager {
             window.tuTienApp.showNotification('Lỗi Tuyên Chiến', error.message, 'error');
         } finally {
             if (submitBtn) {
-                hideLoading(submitBtn, originalText);
+                this.hideLoading(submitBtn, originalText);
             }
         }
+    }
+
+    showTransferLeadership() {
+        // Create and show transfer leadership modal
+        let modal = document.getElementById('transferLeadershipModal');
+        if (!modal) {
+            // Create modal if it doesn't exist
+            const modalHtml = `
+                <div class="modal fade" id="transferLeadershipModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content mystical-modal">
+                            <div class="modal-header border-bottom border-secondary">
+                                <h5 class="modal-title text-golden">
+                                    <i class="fas fa-crown me-2"></i>Chuyển Quyền Bang Chủ
+                                </h5>
+                                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="alert alert-danger" role="alert">
+                                    <i class="fas fa-exclamation-triangle me-2"></i>
+                                    <strong>Cảnh báo!</strong> Sau khi chuyển quyền, bạn sẽ không thể hoàn tác.
+                                </div>
+                                <p class="text-light">Tính năng này sẽ được phát triển trong tương lai!</p>
+                            </div>
+                            <div class="modal-footer border-top border-secondary">
+                                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Đóng</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            modal = document.getElementById('transferLeadershipModal');
+        }
+        
+        const bootstrapModal = new bootstrap.Modal(modal);
+        bootstrapModal.show();
+    }
+
+    async toggleRecruitment() {
+        try {
+            const currentStatus = document.getElementById('recruitmentToggle')?.checked || false;
+            const newStatus = !currentStatus;
+            
+            const response = await fetch('/api/toggle-guild-recruitment', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: JSON.stringify({ recruitment_open: newStatus })
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                // Update UI
+                const toggle = document.getElementById('recruitmentToggle');
+                const toggleText = document.getElementById('recruitmentToggleText');
+                
+                if (toggle) toggle.checked = newStatus;
+                if (toggleText) {
+                    toggleText.textContent = newStatus ? 'Đóng Tuyển Dụng' : 'Mở Tuyển Dụng';
+                }
+                
+                window.tuTienApp.showNotification('Cập Nhật', data.message, 'success');
+            } else {
+                throw new Error(data.error);
+            }
+        } catch (error) {
+            window.tuTienApp.showNotification('Lỗi', error.message, 'error');
+        }
+    }
+
+    loadAvailablePlayers() {
+        const tableBody = document.getElementById('availablePlayersTable');
+        if (!tableBody) return;
+        
+        // Simulate loading available players
+        setTimeout(() => {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center text-muted">
+                        Tính năng tuyển thành viên sẽ được phát triển!
+                    </td>
+                </tr>
+            `;
+        }, 1000);
     }
 
     showWarDeclarationEffect(warType) {
@@ -823,6 +943,8 @@ class GuildManager {
 // Custom modal functions
 function openCreateGuildModal() {
     const modal = document.getElementById('createGuildModal');
+    if (!modal) return;
+    
     modal.style.display = 'block';
     modal.classList.add('show');
     modal.style.backgroundColor = 'rgba(15, 15, 35, 0.8)';
@@ -830,13 +952,68 @@ function openCreateGuildModal() {
     
     // Reset form
     const form = document.getElementById('createGuildForm');
-    form.reset();
+    if (form) form.reset();
     
     // Add click outside to close
     modal.addEventListener('click', function(e) {
         if (e.target === modal) {
             closeCreateGuildModal();
         }
+    });
+}
+
+function submitWarDeclaration() {
+    if (window.guildManager) {
+        window.guildManager.handleWarDeclaration();
+    }
+}
+
+function leaveGuild() {
+    if (!confirm('Bạn có chắc muốn rời khỏi bang hội?')) return;
+    
+    fetch('/api/leave-guild', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.tuTienApp.showNotification('Rời Bang Hội', data.message, 'info');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            window.tuTienApp.showNotification('Lỗi', data.error, 'error');
+        }
+    })
+    .catch(error => {
+        window.tuTienApp.showNotification('Lỗi', 'Không thể rời bang hội!', 'error');
+    });
+}
+
+function kickMember(memberId, memberName) {
+    if (!confirm(`Bạn có chắc muốn đuổi ${memberName} khỏi bang hội?`)) return;
+    
+    fetch('/api/kick-member', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify({ member_id: memberId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.tuTienApp.showNotification('Đuổi Thành Viên', data.message, 'warning');
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            window.tuTienApp.showNotification('Lỗi', data.error, 'error');
+        }
+    })
+    .catch(error => {
+        window.tuTienApp.showNotification('Lỗi', 'Không thể đuổi thành viên!', 'error');
     });
 }
 

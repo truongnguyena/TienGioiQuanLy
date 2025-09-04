@@ -361,6 +361,94 @@
     </div>
 </div>
 
+<!-- Guild Settings Modal -->
+<div class="modal fade" id="guildSettingsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-cog me-2"></i>Cài Đặt Bang Hội
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="guildSettingsForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mô Tả Bang Hội</label>
+                        <textarea class="form-control mystical-input" name="description" rows="4" maxlength="500">{{ user_guild.description if user_guild else '' }}</textarea>
+                        <div class="form-text text-light opacity-75">Tối đa 500 ký tự</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="recruitment_open" id="recruitmentOpen" 
+                                   {{ 'checked' if user_guild and user_guild.recruitment_open else '' }}>
+                            <label class="form-check-label text-light" for="recruitmentOpen">
+                                Mở tuyển thành viên
+                            </label>
+                        </div>
+                        <div class="form-text text-light opacity-75">Cho phép người khác gửi yêu cầu gia nhập</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Yêu Cầu Tu Vi Tối Thiểu</label>
+                        <select class="form-control mystical-input" name="min_cultivation_level">
+                            <option value="Luyện Khí Tầng 1">Luyện Khí Tầng 1</option>
+                            <option value="Luyện Khí Tầng 5">Luyện Khí Tầng 5</option>
+                            <option value="Trúc Cơ Tầng 1">Trúc Cơ Tầng 1</option>
+                            <option value="Trúc Cơ Tầng 5">Trúc Cơ Tầng 5</option>
+                            <option value="Kết Đan Tầng 1">Kết Đan Tầng 1</option>
+                            <option value="Nguyên Anh Tầng 1">Nguyên Anh Tầng 1</option>
+                            <option value="Hóa Thần Tầng 1">Hóa Thần Tầng 1</option>
+                        </select>
+                    </div>
+                </form>
+                
+                <hr class="border-secondary">
+                
+                <!-- Quick Actions -->
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-purple mb-2">Hành Động Nhanh</h6>
+                        <button class="btn btn-outline-celestial mystical-btn w-100 mb-2" onclick="guildManager.toggleRecruitment()">
+                            <i class="fas fa-user-plus me-2"></i>
+                            <span id="recruitmentToggleText">
+                                {{ 'Đóng Tuyển Dụng' if user_guild and user_guild.recruitment_open else 'Mở Tuyển Dụng' }}
+                            </span>
+                        </button>
+                        <button class="btn btn-outline-warning mystical-btn w-100" onclick="guildManager.showTransferLeadership()">
+                            <i class="fas fa-crown me-2"></i>Chuyển Quyền Bang Chủ
+                        </button>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <h6 class="text-purple mb-2">Thống Kê Bang Hội</h6>
+                        <div class="guild-stats">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-light">Tổng Sức Mạnh:</span>
+                                <span class="text-golden" id="guildTotalPower">
+                                    {% if user_guild %}
+                                        {{ user_guild.members|sum(attribute='spiritual_power') or 0 }}
+                                    {% else %}0{% endif %}
+                                </span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="text-light">Thành Viên Hoạt Động:</span>
+                                <span class="text-celestial">
+                                    {% if user_guild %}{{ user_guild.members|length }}{% else %}0{% endif %}/50
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" form="guildSettingsForm" class="btn btn-golden mystical-btn">Lưu Cài Đặt</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Declare War Modal -->
 <div class="modal fade" id="declareWarModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
@@ -372,6 +460,11 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Tuyên chiến sẽ có hậu quả nghiêm trọng! Hãy cân nhắc kỹ trước khi quyết định.
+                </div>
+                
                 <form id="declareWarForm">
                     <div class="mb-3">
                         <label class="form-label text-celestial">Bang Hội Mục Tiêu</label>
@@ -379,11 +472,14 @@
                             <option value="">Chọn bang hội</option>
                             {% for guild in all_guilds %}
                                 {% if user_guild and guild.id != user_guild.id %}
-                                <option value="{{ guild.id }}">{{ guild.name }}</option>
+                                <option value="{{ guild.id }}" data-members="{{ guild.members|length }}" data-level="{{ guild.level }}">
+                                    {{ guild.name }} (Cấp {{ guild.level }}, {{ guild.members|length }} thành viên)
+                                </option>
                                 {% endif %}
                             {% endfor %}
                         </select>
                     </div>
+                    
                     <div class="mb-3">
                         <label class="form-label text-celestial">Loại Chiến Tranh</label>
                         <select class="form-control mystical-input" name="war_type" required>
@@ -391,13 +487,141 @@
                             <option value="Sát Nhập">Sát Nhập - Hợp nhất hai bang hội</option>
                             <option value="Chinh Phục">Chinh Phục - Chiếm lãnh thổ</option>
                             <option value="Tranh Chấp">Tranh Chấp - Giải quyết mâu thuẫn</option>
+                            <option value="Diệt Bang">Diệt Bang - Tiêu diệt hoàn toàn</option>
                         </select>
+                        <div class="form-text text-light opacity-75">
+                            Mỗi loại chiến tranh có mục tiêu và hậu quả khác nhau
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Lý Do Tuyên Chiến (Tùy chọn)</label>
+                        <textarea class="form-control mystical-input" name="war_reason" rows="2" maxlength="200" placeholder="Nhập lý do tuyên chiến..."></textarea>
                     </div>
                 </form>
             </div>
             <div class="modal-footer border-top border-secondary">
                 <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
-                <button type="button" class="btn btn-golden mystical-btn" onclick="submitWarDeclaration()">Tuyên Chiến</button>
+                <button type="submit" form="declareWarForm" class="btn btn-danger mystical-btn">
+                    <i class="fas fa-sword me-2"></i>Tuyên Chiến
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recruit Members Modal -->
+<div class="modal fade" id="recruitModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-celestial">
+                    <i class="fas fa-user-plus me-2"></i>Tuyển Thành Viên
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <!-- Recruitment Status -->
+                <div class="recruitment-status mb-4">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <h6 class="text-purple mb-0">Trạng Thái Tuyển Dụng</h6>
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" id="recruitmentToggle" 
+                                   {{ 'checked' if user_guild and user_guild.recruitment_open else '' }}>
+                            <label class="form-check-label text-light" for="recruitmentToggle">
+                                {{ 'Đang Mở' if user_guild and user_guild.recruitment_open else 'Đã Đóng' }}
+                            </label>
+                        </div>
+                    </div>
+                    <small class="text-light opacity-75">
+                        Bật để cho phép người khác gửi yêu cầu gia nhập bang hội
+                    </small>
+                </div>
+                
+                <!-- Available Players -->
+                <div class="available-players">
+                    <h6 class="text-celestial mb-3">Người Chơi Không Bang Hội</h6>
+                    <div class="table-responsive">
+                        <table class="table table-dark mystical-table">
+                            <thead>
+                                <tr>
+                                    <th>Tên</th>
+                                    <th>Tu Vi</th>
+                                    <th>Linh Lực</th>
+                                    <th>Hành Động</th>
+                                </tr>
+                            </thead>
+                            <tbody id="availablePlayersTable">
+                                <tr>
+                                    <td colspan="4" class="text-center">
+                                        <div class="loading-spinner"></div>
+                                        <span class="text-light">Đang tải danh sách...</span>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Join Requests -->
+                <div class="join-requests mt-4">
+                    <h6 class="text-golden mb-3">Yêu Cầu Gia Nhập <span class="badge bg-purple">0</span></h6>
+                    <div id="joinRequestsContainer">
+                        <p class="text-muted">Không có yêu cầu gia nhập nào</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Transfer Leadership Modal -->
+<div class="modal fade" id="transferLeadershipModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header border-bottom border-secondary">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-crown me-2"></i>Chuyển Quyền Bang Chủ
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="alert alert-danger" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Cảnh báo!</strong> Sau khi chuyển quyền, bạn sẽ không thể hoàn tác. 
+                    Hãy chắc chắn về quyết định của mình.
+                </div>
+                
+                <form id="transferLeadershipForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Chọn Bang Chủ Mới</label>
+                        <select class="form-control mystical-input" name="new_leader_id" required>
+                            <option value="">Chọn thành viên</option>
+                            {% if user_guild %}
+                                {% for member in user_guild.members %}
+                                    {% if member.id != user_guild.leader_id %}
+                                    <option value="{{ member.id }}">
+                                        {{ member.dao_name or member.username }} ({{ member.cultivation_level }})
+                                    </option>
+                                    {% endif %}
+                                {% endfor %}
+                            {% endif %}
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Xác Nhận</label>
+                        <input type="text" class="form-control mystical-input" 
+                               placeholder="Gõ 'XAC NHAN' để xác nhận" 
+                               id="transferConfirmation" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer border-top border-secondary">
+                <button type="button" class="btn btn-secondary mystical-btn" data-bs-dismiss="modal">Hủy</button>
+                <button type="submit" form="transferLeadershipForm" class="btn btn-warning mystical-btn" disabled id="transferSubmitBtn">
+                    <i class="fas fa-crown me-2"></i>Chuyển Quyền
+                </button>
             </div>
         </div>
     </div>
