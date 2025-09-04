@@ -44,8 +44,8 @@
                                         <div class="stat-item">
                                             <i class="fas fa-yin-yang text-celestial"></i>
                                             <div class="stat-info">
-                                                <h5 class="text-light {{ 'text-success' if current_user.karma_points >= 0 else 'text-danger' }}">
-                                                    {{ current_user.karma_points }}
+                                                <h5 class="text-light {{ 'text-success' if (current_user.karma_points or 0) >= 0 else 'text-danger' }}">
+                                                    {{ current_user.karma_points or 0 }}
                                                 </h5>
                                                 <p class="text-muted">Nghiệp Quả</p>
                                             </div>

@@ -82,11 +82,11 @@ class CultivationAI:
             "Có thể gặp phải tiểu nhân, cần cảnh giác.",
         ]
         
-        # Tính toán dựa trên nhiều yếu tố
+        # Tính toán dựa trên nhiều yếu tố (handle None values)
         user_factors = (
-            user.spiritual_power % 7 +
-            user.karma_points % 5 +
-            user.reputation % 3 +
+            (user.spiritual_power or 0) % 7 +
+            (user.karma_points or 0) % 5 +
+            (user.reputation or 0) % 3 +
             datetime.now().day % 8
         ) % len(fortunes)
         

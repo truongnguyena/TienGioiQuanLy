@@ -9,6 +9,14 @@ from app import app, db
 from models import User, Guild, World, GuildWar, Expedition, ExpeditionParticipant, ChatMessage, Achievement
 from ai_helper import cultivation_ai
 
+# Import Perplexity AI helper
+try:
+    from perplexity_helper import perplexity_manager
+    PERPLEXITY_AVAILABLE = True
+except Exception as e:
+    print(f"Perplexity AI not available: {e}")
+    PERPLEXITY_AVAILABLE = False
+
 @app.route('/')
 def index():
     # Get some statistics for the homepage
@@ -658,5 +666,217 @@ def get_messages():
         })
     
     return jsonify({'success': True, 'messages': message_list})
+
+# ========================
+# PERPLEXITY AI ROUTES
+# ========================
+
+@app.route('/api/ai/cultivation-advice', methods=['POST'])
+@login_required
+def ai_cultivation_advice():
+    """Get AI cultivation strategy advice"""
+    if not PERPLEXITY_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'error': 'AI Hỗ trợ chưa được kích hoạt!'
+        })
+    
+    try:
+        user_data = {
+            'cultivation_level': current_user.cultivation_level,
+            'spiritual_power': current_user.spiritual_power,
+            'spiritual_stones': current_user.spiritual_stones,
+            'pills_count': current_user.pills_count,
+            'artifacts_count': current_user.artifacts_count,
+            'cultivation_points': current_user.cultivation_points
+        }
+        
+        advice = perplexity_manager.get_cultivation_advice(user_data)
+        
+        return jsonify({
+            'success': True,
+            'advice': advice,
+            'type': 'cultivation'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Lỗi khi lấy lời khuyên tu luyện: {str(e)}'
+        })
+
+@app.route('/api/ai/guild-management', methods=['POST'])
+@login_required
+def ai_guild_management():
+    """Get AI guild management advice"""
+    if not PERPLEXITY_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'error': 'AI Hỗ trợ chưa được kích hoạt!'
+        })
+    
+    if not current_user.guild_id:
+        return jsonify({
+            'success': False,
+            'error': 'Bạn cần tham gia bang hội để nhận lời khuyên quản lý!'
+        })
+    
+    try:
+        guild = Guild.query.get(current_user.guild_id)
+        if not guild:
+            return jsonify({'success': False, 'error': 'Không tìm thấy bang hội!'})
+        
+        guild_data = {
+            'name': guild.name,
+            'member_count': len(guild.members),
+            'level': guild.level,
+            'treasury': guild.treasury
+        }
+        
+        user_role = "Bang Chủ" if guild.leader_id == current_user.id else "Thành Viên"
+        
+        advice = perplexity_manager.get_guild_management_advice(guild_data, user_role)
+        
+        return jsonify({
+            'success': True,
+            'advice': advice,
+            'type': 'guild_management'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Lỗi khi lấy lời khuyên bang hội: {str(e)}'
+        })
+
+@app.route('/api/ai/expedition-advice', methods=['POST'])
+@login_required
+def ai_expedition_advice():
+    """Get AI expedition planning advice"""
+    if not PERPLEXITY_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'error': 'AI Hỗ trợ chưa được kích hoạt!'
+        })
+    
+    try:
+        context = request.json.get('context', 'planning') if request.json else 'planning'
+        expedition_id = request.json.get('expedition_id') if request.json else None
+        
+        if expedition_id:
+            # Get advice for existing expedition
+            expedition = Expedition.query.get(expedition_id)
+            if not expedition:
+                return jsonify({'success': False, 'error': 'Không tìm thấy đạo lữ!'})
+            
+            expedition_data = {
+                'name': expedition.name,
+                'destination': expedition.destination,
+                'status': expedition.status,
+                'participants': expedition.participants
+            }
+            context = 'ongoing'
+        else:
+            # Get general expedition planning advice
+            expedition_data = request.json or {}
+            if not expedition_data:
+                expedition_data = {
+                    'destination': 'Bí Cảnh Linh Dược',
+                    'difficulty_level': 3,
+                    'duration_hours': 24,
+                    'max_participants': 5,
+                    'min_cultivation': current_user.cultivation_level
+                }
+        
+        advice = perplexity_manager.get_expedition_advice(expedition_data, context)
+        
+        return jsonify({
+            'success': True,
+            'advice': advice,
+            'type': 'expedition'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Lỗi khi lấy lời khuyên đạo lữ: {str(e)}'
+        })
+
+@app.route('/api/ai/resource-optimization', methods=['POST'])
+@login_required
+def ai_resource_optimization():
+    """Get AI resource management advice"""
+    if not PERPLEXITY_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'error': 'AI Hỗ trợ chưa được kích hoạt!'
+        })
+    
+    try:
+        user_resources = {
+            'spiritual_stones': current_user.spiritual_stones,
+            'pills_count': current_user.pills_count,
+            'artifacts_count': current_user.artifacts_count,
+            'mining_level': current_user.mining_level,
+            'cultivation_points': current_user.cultivation_points,
+            'cultivation_level': current_user.cultivation_level
+        }
+        
+        goals = request.json.get('goals', []) if request.json else []
+        
+        advice = perplexity_manager.get_resource_optimization_advice(user_resources, goals)
+        
+        return jsonify({
+            'success': True,
+            'advice': advice,
+            'type': 'resources'
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Lỗi khi lấy lời khuyên tài nguyên: {str(e)}'
+        })
+
+@app.route('/api/ai/general', methods=['POST'])
+@login_required
+def ai_general_advice():
+    """Get general AI advice about Tu Tiên world"""
+    if not PERPLEXITY_AVAILABLE:
+        return jsonify({
+            'success': False,
+            'error': 'AI Hỗ trợ chưa được kích hoạt!'
+        })
+    
+    try:
+        data = request.json or {}
+        question = data.get('question', '')
+        
+        if not question:
+            return jsonify({
+                'success': False,
+                'error': 'Vui lòng nhập câu hỏi!'
+            })
+        
+        context = {
+            'user_level': current_user.cultivation_level,
+            'spiritual_power': current_user.spiritual_power,
+            'guild': Guild.query.get(current_user.guild_id).name if current_user.guild_id else None
+        }
+        
+        advice = perplexity_manager.get_general_advice(question, context)
+        
+        return jsonify({
+            'success': True,
+            'advice': advice,
+            'type': 'general',
+            'question': question
+        })
+        
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': f'Lỗi khi xử lý câu hỏi: {str(e)}'
+        })
 
 
