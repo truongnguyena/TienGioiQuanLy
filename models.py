@@ -55,7 +55,7 @@ class User(UserMixin, db.Model):
     def get_cultivation_stage(self):
         stages = [
             "Luyện Khí", "Trúc Cơ", "Kết Đan", "Nguyên Anh", "Hóa Thần",
-            "Luyện Hư", "Hợp Thể", "Đại Thừa", "Độ Kiếp", "Tản Tiên"
+            "Luyện Hư", "Hợp Thể", "Đại Thừa", "Độ Kiếp", "Tản Tiên", "Toàn Chi Thiên Đạo"
         ]
         for stage in stages:
             if stage in self.cultivation_level:
@@ -63,10 +63,21 @@ class User(UserMixin, db.Model):
         return "Luyện Khí"
     
     def get_cultivation_substage(self):
-        """Lấy tầng chi tiết (1-9 hoặc Viên Mãn)"""
+        """Lấy tầng chi tiết (1-9 hoặc Viên Mãn hoặc các cấp đặc biệt)"""
         level = self.cultivation_level
-        if "Viên Mãn" in level:
+        
+        # Kiểm tra các cấp độ đặc biệt của Toàn Chi Thiên Đạo
+        if "Đại Viên Mãn" in level:
+            return "Đại Viên Mãn"
+        elif "Hậu Kỳ" in level:
+            return "Hậu Kỳ"
+        elif "Trung Kỳ" in level:
+            return "Trung Kỳ"
+        elif "Sơ Kỳ" in level:
+            return "Sơ Kỳ"
+        elif "Viên Mãn" in level:
             return "Viên Mãn"
+        
         # Tìm tầng số (1-9)
         for i in range(1, 10):
             if f"Tầng {i}" in level:

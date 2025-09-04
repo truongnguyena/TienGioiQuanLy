@@ -227,7 +227,7 @@ def cultivate():
         if "Viên Mãn" in current_level:
             # Advance to next major stage
             major_stages = ["Luyện Khí", "Trúc Cơ", "Kết Đan", "Nguyên Anh", "Hóa Thần",
-                           "Luyện Hư", "Hợp Thể", "Đại Thừa", "Độ Kiếp", "Tản Tiên"]
+                           "Luyện Hư", "Hợp Thể", "Đại Thừa", "Độ Kiếp", "Tản Tiên", "Toàn Chi Thiên Đạo"]
             try:
                 current_major_index = major_stages.index(current_stage)
                 if current_major_index < len(major_stages) - 1:
@@ -646,6 +646,61 @@ def create_expedition():
     except Exception as e:
         db.session.rollback()
         return jsonify({'success': False, 'error': 'Lỗi khi tạo đạo lữ. Vui lòng thử lại!'})
+
+@app.route('/api/upgrade-test-account', methods=['POST'])
+@login_required
+def upgrade_test_account():
+    """Nâng cấp tài khoản test lên cảnh giới Toàn Chi Thiên Đạo"""
+    
+    # Chỉ admin hoặc tài khoản test mới được sử dụng
+    if not current_user.is_admin and 'test' not in current_user.username.lower():
+        return jsonify({
+            'success': False, 
+            'error': 'Chỉ tài khoản test hoặc admin mới có thể nâng cấp!'
+        })
+    
+    try:
+        # Nâng cấp lên cảnh giới Toàn Chi Thiên Đạo
+        current_user.cultivation_level = "Toàn Chi Thiên Đạo Sơ Kỳ"
+        current_user.spiritual_power = 3000000  # 3 triệu linh lực
+        current_user.spiritual_stones = 1000000  # 1 triệu linh thạch
+        current_user.cultivation_points = 500000  # 500k điểm tu luyện
+        current_user.pills_count = 1000  # 1000 đan dược
+        current_user.artifacts_count = 100  # 100 pháp bảo
+        current_user.reputation = 100000  # 100k danh tiếng
+        current_user.karma_points = 50000  # 50k nghiệp lực
+        current_user.mining_level = 50  # Level 50 đào mỏ
+        current_user.mining_experience = 0
+        
+        # Thêm achievement đặc biệt
+        achievement = Achievement(
+            user_id=current_user.id,
+            title="Toàn Chi Thiên Đạo - Bất Tử Truyền Thuyết",
+            description="Đạt được cảnh giới huyền thoại Toàn Chi Thiên Đạo, vượt qua mọi giới hạn của thế gian",
+            category="cultivation",
+            rarity="legendary"
+        )
+        db.session.add(achievement)
+        
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Đã nâng cấp thành công lên cảnh giới Toàn Chi Thiên Đạo!',
+            'new_stats': {
+                'cultivation_level': current_user.cultivation_level,
+                'spiritual_power': current_user.spiritual_power,
+                'spiritual_stones': current_user.spiritual_stones,
+                'cultivation_points': current_user.cultivation_points
+            }
+        })
+        
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({
+            'success': False,
+            'error': f'Lỗi khi nâng cấp tài khoản: {str(e)}'
+        })
 
 @app.route('/api/get-messages', methods=['GET'])
 @login_required  

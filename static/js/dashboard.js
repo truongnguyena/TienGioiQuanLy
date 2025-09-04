@@ -53,10 +53,10 @@ class Dashboard {
             if (data.success) {
                 // Update spiritual power display
                 this.updateSpiritualPower(data.new_total);
-                
+
                 // Show cultivation effect
                 this.showCultivationEffect(data.power_gained);
-                
+
                 // Update cultivation level if changed
                 if (data.cultivation_level) {
                     this.updateCultivationLevel(data.cultivation_level);
@@ -152,9 +152,10 @@ class Dashboard {
     }
 
     checkBreakthrough(data) {
-        if (data.breakthrough) {
-            // Major breakthrough effect
-            this.showBreakthroughEffect(data.new_stage);
+        if (data.cultivation_level && data.cultivation_level !== this.lastKnownLevel) {
+            // Show breakthrough animation
+            this.showBreakthroughEffect(data.cultivation_level);
+            this.lastKnownLevel = data.cultivation_level;
         }
     }
 
@@ -204,7 +205,7 @@ class Dashboard {
 
             oscillator.frequency.setValueAtTime(440, audioContext.currentTime);
             oscillator.frequency.exponentialRampToValueAtTime(880, audioContext.currentTime + 0.5);
-            
+
             gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
             gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
 
@@ -266,7 +267,7 @@ class Dashboard {
         try {
             // Simulate AI fortune generation
             await new Promise(resolve => setTimeout(resolve, 2000));
-            
+
             const fortunes = [
                 "Hôm nay là ngày tốt lành cho việc đột phá cảnh giới cao hơn!",
                 "Nên tránh tu luyện công pháp mạnh trong 3 ngày tới để tránh tẩu hỏa nhập ma.",
@@ -348,7 +349,7 @@ class Dashboard {
     async sendAIMessage() {
         const input = document.getElementById('aiChatInput');
         const container = document.querySelector('.ai-chat-container');
-        
+
         if (!input || !container || !input.value.trim()) return;
 
         const message = input.value.trim();
@@ -376,7 +377,7 @@ class Dashboard {
         try {
             // Simulate AI response
             await new Promise(resolve => setTimeout(resolve, 1500));
-            
+
             const responses = this.generateAIResponse(message);
             thinkingMessage.remove();
 
@@ -403,7 +404,7 @@ class Dashboard {
 
     generateAIResponse(message) {
         const keywords = message.toLowerCase();
-        
+
         if (keywords.includes('tu luyện') || keywords.includes('cultivation')) {
             return "Để tu luyện hiệu quả, nên duy trì thói quen tu luyện hàng ngày, sử dụng đan dược hỗ trợ và tìm kiếm môi trường có linh khí dồi dào. Nhớ không được vội vàng đột phá khi chưa đủ cơ sở.";
         } else if (keywords.includes('đột phá') || keywords.includes('breakthrough')) {
@@ -422,7 +423,7 @@ class Dashboard {
     setupResourceManagement() {
         // Resource auto-collection
         this.startResourceUpdates();
-        
+
         // Quick resource actions
         this.setupQuickResourceActions();
     }
@@ -437,7 +438,7 @@ class Dashboard {
         // Simulate resource generation
         const spiritualStones = document.querySelector('[data-spiritual-stones]');
         const pills = document.querySelector('[data-pills]');
-        
+
         if (spiritualStones) {
             const current = parseInt(spiritualStones.textContent) || 0;
             const gained = Math.floor(Math.random() * 10) + 5;
@@ -472,15 +473,15 @@ class Dashboard {
     quickUsePill() {
         const pillsCount = document.querySelector('[data-pills]');
         const currentPills = parseInt(pillsCount?.textContent) || 0;
-        
+
         if (currentPills > 0) {
             // Use pill and gain spiritual power
             window.tuTienApp.animateNumberChange(pillsCount, currentPills - 1);
-            
+
             const powerGain = Math.floor(Math.random() * 100) + 50;
             const currentPower = parseInt(document.querySelector('[data-spiritual-power]')?.textContent?.replace(/[^\d]/g, '')) || 0;
             this.updateSpiritualPower(currentPower + powerGain);
-            
+
             window.tuTienApp.showNotification('Sử Dụng Đan Dược', `Tăng ${powerGain} linh lực!`, 'success');
         } else {
             window.tuTienApp.showNotification('Không Đủ Đan Dược', 'Cần có ít nhất 1 đan dược để sử dụng!', 'warning');
@@ -615,6 +616,43 @@ async function createGuild() {
         }
     } catch (error) {
         window.tuTienApp.showNotification('Lỗi', 'Không thể tạo bang hội!', 'error');
+    }
+}
+
+// Global function for test account upgrade
+async function upgradeTestAccount() {
+    if (!confirm('Bạn có chắc muốn nâng cấp tài khoản lên cảnh giới Toàn Chi Thiên Đạo?\n\nLưu ý: Đây là cảnh giới huyền thoại, vượt qua mọi giới hạn!')) {
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/upgrade-test-account', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            window.tuTienApp.showNotification(
+                'Nâng Cấp Thành Công!', 
+                'Đã đạt được cảnh giới Toàn Chi Thiên Đạo!', 
+                'legendary'
+            );
+
+            // Reload page to show new stats
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            throw new Error(data.error || 'Upgrade failed');
+        }
+    } catch (error) {
+        console.error('Upgrade error:', error);
+        window.tuTienApp.showNotification('Lỗi Nâng Cấp', error.message, 'error');
     }
 }
 

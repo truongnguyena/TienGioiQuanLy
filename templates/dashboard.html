@@ -15,7 +15,7 @@
                     </h4>
                     <p class="text-celestial mb-0">{{ current_user.cultivation_level }}</p>
                 </div>
-                
+
                 <div class="card-body">
                     <!-- Cultivation Progress -->
                     <div class="cultivation-progress mb-4">
@@ -27,7 +27,7 @@
                             <div class="progress-bar progress-bar-golden" style="width: {{ (current_user.spiritual_power % 1000) / 10 }}%"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Resources -->
                     <div class="resources-grid">
                         <div class="resource-item">
@@ -51,7 +51,7 @@
                             <small>Uy Tín</small>
                         </div>
                     </div>
-                    
+
                     <!-- Mining Stats -->
                     <div class="mining-stats-section mt-4 mb-3">
                         <h6 class="text-purple mb-3">
@@ -72,17 +72,17 @@
                             </div>
                         </div>
                     </div>
-                    
+
                     <!-- Quick Actions -->
                     <div class="mt-4">
                         <button class="btn btn-golden w-100 mb-2 mystical-btn" onclick="cultivate()">
                             <i class="fas fa-meditation me-2"></i>Tu Luyện
                         </button>
-                        
+
                         <a href="{{ url_for('mining') }}" class="btn btn-purple w-100 mb-2 mystical-btn">
                             <i class="fas fa-pickaxe me-2"></i>Mỏ Linh Thạch
                         </a>
-                        
+
                         {% if not current_user.guild_id %}
                         <button class="btn btn-secondary w-100 mystical-btn" data-bs-toggle="modal" data-bs-target="#createGuildModal">
                             <i class="fas fa-plus me-2"></i>Tạo Bang Hội
@@ -92,7 +92,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- AI Fortune & Weather -->
         <div class="col-lg-8 mb-4">
             <div class="row">
@@ -121,7 +121,7 @@
                         </div>
                     </div>
                 </div>
-                
+
                 <!-- Weather Card -->
                 <div class="col-md-6 mb-4">
                     <div class="mystical-card h-100">
@@ -149,7 +149,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="row">
         <!-- Guild Info -->
         <div class="col-lg-6 mb-4">
@@ -202,7 +202,7 @@
                 </div>
             </div>
         </div>
-        
+
         <!-- Recent Activity -->
         <div class="col-lg-6 mb-4">
             <div class="mystical-card">
@@ -238,7 +238,7 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Available Expeditions -->
     {% if available_expeditions %}
     <div class="row">
