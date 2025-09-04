@@ -37,14 +37,14 @@
                             <div class="col-md-4">
                                 <div class="stat-box">
                                     <h6 class="text-golden">Cấp Độ Khai Thác</h6>
-                                    <span class="stat-number text-purple" id="miningLevel">{{ current_user.mining_level }}</span>
+                                    <span class="stat-number text-purple" id="miningLevel">{{ current_user.safe_mining_level }}</span>
                                 </div>
                             </div>
                             <div class="col-md-4">
                                 <div class="stat-box">
                                     <h6 class="text-golden">Kinh Nghiệm</h6>
-                                    <span class="stat-number text-celestial" id="miningExp">{{ current_user.mining_experience }}</span>
-                                    <small class="text-muted d-block">/ {{ current_user.mining_level * 100 }}</small>
+                                    <span class="stat-number text-celestial" id="miningExp">{{ current_user.safe_mining_experience }}</span>
+                                    <small class="text-muted d-block">/ {{ current_user.safe_mining_level * 100 }}</small>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -59,7 +59,7 @@
                     <div class="mining-progress mb-4">
                         <div class="progress mystical-progress">
                             <div class="progress-bar progress-bar-celestial" id="miningProgressBar" 
-                                 style="width: {{ (current_user.mining_experience / (current_user.mining_level * 100) * 100) }}%"></div>
+                                 style="width: {{ (current_user.safe_mining_experience / (current_user.safe_mining_level * 100) * 100) }}%"></div>
                         </div>
                         <small class="text-muted">Tiến độ lên cấp</small>
                     </div>

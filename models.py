@@ -27,8 +27,8 @@ class User(UserMixin, db.Model):
     artifacts_count = db.Column(db.Integer, default=1)
     
     # Mining system
-    mining_level = db.Column(db.Integer, default=1)
-    mining_experience = db.Column(db.Integer, default=0)
+    mining_level = db.Column(db.Integer, default=1, nullable=False)
+    mining_experience = db.Column(db.Integer, default=0, nullable=False)
     last_mining = db.Column(db.DateTime, default=datetime.utcnow)
     
     # Free benefits
@@ -72,6 +72,16 @@ class User(UserMixin, db.Model):
             if f"Tầng {i}" in level:
                 return f"Tầng {i}"
         return "Tầng 1"
+    
+    @property
+    def safe_mining_level(self):
+        """Trả về mining_level với giá trị mặc định nếu None"""
+        return self.mining_level or 1
+    
+    @property
+    def safe_mining_experience(self):
+        """Trả về mining_experience với giá trị mặc định nếu None"""
+        return self.mining_experience or 0
 
 class Guild(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -60,13 +60,13 @@
                         <div class="row g-2">
                             <div class="col-6">
                                 <div class="mini-stat-box">
-                                    <div class="text-golden">Cấp {{ current_user.mining_level }}</div>
+                                    <div class="text-golden">Cấp {{ current_user.safe_mining_level }}</div>
                                     <small class="text-muted">Khai Thác</small>
                                 </div>
                             </div>
                             <div class="col-6">
                                 <div class="mini-stat-box">
-                                    <div class="text-celestial">{{ current_user.mining_experience }}/{{ current_user.mining_level * 100 }}</div>
+                                    <div class="text-celestial">{{ current_user.safe_mining_experience }}/{{ current_user.safe_mining_level * 100 }}</div>
                                     <small class="text-muted">Kinh Nghiệm</small>
                                 </div>
                             </div>
