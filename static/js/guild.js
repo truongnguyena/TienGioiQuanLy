@@ -45,6 +45,11 @@ class GuildManager {
 
     async handleGuildCreation() {
         const form = document.getElementById('createGuildForm');
+        if (!form) {
+            console.error('Guild creation form not found');
+            return;
+        }
+
         const formData = new FormData(form);
         
         const guildData = {
@@ -53,8 +58,10 @@ class GuildManager {
         };
 
         const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        showLoading(submitBtn);
+        const originalText = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            showLoading(submitBtn);
+        }
 
         try {
             const response = await fetch('/api/create-guild', {
@@ -88,7 +95,9 @@ class GuildManager {
             console.error('Guild creation error:', error);
             window.tuTienApp.showNotification('Lỗi Tạo Bang Hội', error.message, 'error');
         } finally {
-            hideLoading(submitBtn, originalText);
+            if (submitBtn) {
+                hideLoading(submitBtn, originalText);
+            }
         }
     }
 
@@ -188,8 +197,10 @@ class GuildManager {
         }
 
         const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        showLoading(submitBtn);
+        const originalText = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            showLoading(submitBtn);
+        }
 
         try {
             const response = await fetch('/api/declare-war', {
@@ -225,7 +236,9 @@ class GuildManager {
             console.error('War declaration error:', error);
             window.tuTienApp.showNotification('Lỗi Tuyên Chiến', error.message, 'error');
         } finally {
-            hideLoading(submitBtn, originalText);
+            if (submitBtn) {
+                hideLoading(submitBtn, originalText);
+            }
         }
     }
 

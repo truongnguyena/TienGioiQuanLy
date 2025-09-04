@@ -109,6 +109,11 @@ class ExpeditionManager {
 
     async handleExpeditionCreation() {
         const form = document.getElementById('createExpeditionForm');
+        if (!form) {
+            console.error('Expedition creation form not found');
+            return;
+        }
+
         const formData = new FormData(form);
         
         const expeditionData = {
@@ -124,8 +129,10 @@ class ExpeditionManager {
         };
 
         const submitBtn = form.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
-        showLoading(submitBtn);
+        const originalText = submitBtn ? submitBtn.innerHTML : '';
+        if (submitBtn) {
+            showLoading(submitBtn);
+        }
 
         try {
             const response = await fetch('/api/create-expedition', {
@@ -161,7 +168,9 @@ class ExpeditionManager {
             console.error('Expedition creation error:', error);
             window.tuTienApp.showNotification('Lỗi Tạo Đạo Lữ', error.message, 'error');
         } finally {
-            hideLoading(submitBtn, originalText);
+            if (submitBtn) {
+                hideLoading(submitBtn, originalText);
+            }
         }
     }
 
