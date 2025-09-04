@@ -76,8 +76,7 @@ class GuildManager {
                 );
                 
                 // Close modal and refresh page
-                const modal = bootstrap.Modal.getInstance(document.getElementById('createGuildModal'));
-                modal.hide();
+                closeCreateGuildModal();
                 
                 setTimeout(() => {
                     location.reload();
@@ -448,6 +447,11 @@ class GuildManager {
         }
     }
 
+    setupMemberKick() {
+        // Member kick functionality is handled by setupMemberActions
+        // This function is required but the logic is in setupMemberActions
+    }
+
     async demoteMember(memberId) {
         if (!confirm('Bạn có chắc muốn giáng chức cho thành viên này?')) return;
 
@@ -803,6 +807,39 @@ class GuildManager {
 }
 
 // Global guild functions
+// Custom modal functions
+function openCreateGuildModal() {
+    const modal = document.getElementById('createGuildModal');
+    modal.style.display = 'block';
+    modal.classList.add('show');
+    modal.style.backgroundColor = 'rgba(15, 15, 35, 0.8)';
+    document.body.style.overflow = 'hidden';
+    
+    // Reset form
+    const form = document.getElementById('createGuildForm');
+    form.reset();
+    
+    // Add click outside to close
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            closeCreateGuildModal();
+        }
+    });
+}
+
+function closeCreateGuildModal() {
+    const modal = document.getElementById('createGuildModal');
+    modal.style.display = 'none';
+    modal.classList.remove('show');
+    document.body.style.overflow = '';
+    
+    // Remove any lingering backdrops
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(backdrop => backdrop.remove());
+    document.body.classList.remove('modal-open');
+    document.body.style.paddingRight = '';
+}
+
 async function createGuild() {
     if (window.guildManager) {
         await window.guildManager.handleGuildCreation();

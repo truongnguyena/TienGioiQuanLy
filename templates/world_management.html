@@ -512,13 +512,59 @@ function updateRangeValue(input, displayId) {
 }
 
 function exploreWorld(worldId) {
-    // Implementation for world exploration
-    alert('Tính năng khám phá thế giới sẽ được phát triển!');
+    if (confirm('Bạn có muốn khám phá thế giới này? Sẽ tiêu tốn linh lực.')) {
+        fetch(`/api/explore-world/${worldId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const rewards = data.rewards;
+                let message = `Khám phá thành công!\n\n`;
+                message += `• Linh Thạch: +${rewards.spiritual_stones}\n`;
+                message += `• Nguyên Liệu Quý: +${rewards.rare_materials}\n`;
+                message += `• Linh Lực Tiêu Tốn: -${rewards.energy_cost}`;
+                alert(message);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('Lỗi: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi khám phá thế giới!');
+        });
+    }
 }
 
 function upgradeWorld(worldId) {
-    // Implementation for world upgrades
-    alert('Tính năng nâng cấp thế giới sẽ được phát triển!');
+    const upgradeType = prompt('Chọn loại nâng cấp:\n1. spiritual_density (Mật độ linh khí)\n2. resource_richness (Độ phong phú tài nguyên)\n3. production (Sản xuất linh thạch)\n\nNhập loại nâng cấp:');
+    
+    if (upgradeType && ['spiritual_density', 'resource_richness', 'production'].includes(upgradeType)) {
+        fetch(`/api/upgrade-world/${worldId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ upgrade_type: upgradeType })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert(`${data.message}\nChi phí: ${data.upgrade_cost} linh thạch`);
+                setTimeout(() => location.reload(), 1000);
+            } else {
+                alert('Lỗi: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Có lỗi xảy ra khi nâng cấp thế giới!');
+        });
+    }
 }
 
 function conquerWorld(worldId) {

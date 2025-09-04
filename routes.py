@@ -311,6 +311,108 @@ def create_world_free():
         }
     })
 
+@app.route('/api/explore-world/<int:world_id>', methods=['POST'])
+@login_required
+def explore_world(world_id):
+    world = World.query.get_or_404(world_id)
+    
+    # Check if user owns the world
+    if world.owner_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Bạn không sở hữu thế giới này!'})
+    
+    # Check energy requirement
+    energy_cost = world.danger_level * 50
+    if current_user.spiritual_power < energy_cost:
+        return jsonify({'success': False, 'error': f'Cần {energy_cost} linh lực để khám phá!'})
+    
+    # Deduct energy
+    current_user.spiritual_power -= energy_cost
+    
+    # Calculate rewards based on world properties
+    import random
+    base_stones = world.spiritual_stones_production // 10
+    bonus_stones = random.randint(base_stones, base_stones * 2)
+    
+    # Chance for rare materials
+    rare_chance = (world.resource_richness + world.spiritual_density) / 200
+    found_rare = random.random() < rare_chance
+    rare_materials = random.randint(1, 3) if found_rare else 0
+    
+    # Update rewards
+    current_user.spiritual_stones += bonus_stones
+    if found_rare:
+        world.rare_materials_count += rare_materials
+    
+    # Update exploration timestamp
+    from datetime import datetime
+    world.last_explored = datetime.utcnow()
+    
+    db.session.commit()
+    
+    rewards = {
+        'spiritual_stones': bonus_stones,
+        'rare_materials': rare_materials,
+        'energy_cost': energy_cost
+    }
+    
+    return jsonify({
+        'success': True,
+        'message': 'Khám phá thành công!',
+        'rewards': rewards
+    })
+
+@app.route('/api/upgrade-world/<int:world_id>', methods=['POST'])
+@login_required
+def upgrade_world(world_id):
+    world = World.query.get_or_404(world_id)
+    
+    # Check if user owns the world
+    if world.owner_id != current_user.id:
+        return jsonify({'success': False, 'error': 'Bạn không sở hữu thế giới này!'})
+    
+    upgrade_type = request.json.get('upgrade_type')
+    
+    # Calculate upgrade cost
+    base_cost = 5000
+    level_multiplier = (world.spiritual_density + world.resource_richness + world.danger_level) // 10
+    upgrade_cost = base_cost * (level_multiplier + 1)
+    
+    if current_user.spiritual_stones < upgrade_cost:
+        return jsonify({'success': False, 'error': f'Cần {upgrade_cost} linh thạch để nâng cấp!'})
+    
+    # Apply upgrade
+    if upgrade_type == 'spiritual_density':
+        if world.spiritual_density >= 100:
+            return jsonify({'success': False, 'error': 'Mật độ linh khí đã đạt tối đa!'})
+        world.spiritual_density = min(100, world.spiritual_density + 10)
+        upgrade_name = 'Mật Độ Linh Khí'
+    elif upgrade_type == 'resource_richness':
+        if world.resource_richness >= 100:
+            return jsonify({'success': False, 'error': 'Độ phong phú tài nguyên đã đạt tối đa!'})
+        world.resource_richness = min(100, world.resource_richness + 10)
+        upgrade_name = 'Độ Phong Phú Tài Nguyên'
+    elif upgrade_type == 'production':
+        world.spiritual_stones_production += 50
+        upgrade_name = 'Sản Xuất Linh Thạch'
+    else:
+        return jsonify({'success': False, 'error': 'Loại nâng cấp không hợp lệ!'})
+    
+    # Deduct cost
+    current_user.spiritual_stones -= upgrade_cost
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'message': f'Nâng cấp {upgrade_name} thành công!',
+        'upgrade_cost': upgrade_cost,
+        'world': {
+            'spiritual_density': world.spiritual_density,
+            'resource_richness': world.resource_richness,
+            'production': world.spiritual_stones_production
+        }
+    })
+
 @app.route('/mining')
 @login_required
 def mining():
@@ -402,20 +504,67 @@ def create_guild():
     
     return jsonify({'success': True, 'message': 'Tạo bang hội thành công!'})
 
-@app.route('/api/get-messages/<channel>')
+@app.route('/api/create-expedition', methods=['POST'])
 @login_required
-def get_messages(channel):
+def create_expedition():
+    data = request.json
+    
+    name = data.get('name')
+    destination = data.get('destination')
+    description = data.get('description', '')
+    
+    if not name or len(name) < 3:
+        return jsonify({'success': False, 'error': 'Tên đạo lữ phải có ít nhất 3 ký tự!'})
+    
+    if not destination:
+        return jsonify({'success': False, 'error': 'Điểm đến không được để trống!'})
+    
+    # Check cost
+    expedition_cost = 5000  # spiritual stones
+    if current_user.spiritual_stones < expedition_cost:
+        return jsonify({'success': False, 'error': f'Cần {expedition_cost} linh thạch để tạo đạo lữ!'})
+    
+    expedition = Expedition(
+        name=name,
+        destination=destination,
+        description=description,
+        difficulty_level=data.get('difficulty_level', 1),
+        max_participants=data.get('max_participants', 5),
+        duration_hours=data.get('duration_hours', 24),
+        min_cultivation=data.get('min_cultivation'),
+        required_items=data.get('required_items'),
+        potential_rewards=data.get('potential_rewards'),
+        organizer_guild_id=current_user.guild_id
+    )
+    
+    current_user.spiritual_stones -= expedition_cost
+    db.session.add(expedition)
+    db.session.commit()
+    
+    return jsonify({'success': True, 'message': 'Tạo đạo lữ thành công!'})
+
+@app.route('/api/get-messages', methods=['GET'])
+@login_required  
+def get_messages():
+    channel = request.args.get('channel', 'general')
+    channel_id = request.args.get('channel_id')
+    
     query = ChatMessage.query.filter_by(channel=channel)
+    if channel_id:
+        query = query.filter_by(channel_id=channel_id)
     
-    if channel == 'guild' and current_user.guild_id:
-        query = query.filter_by(channel_id=current_user.guild_id)
+    messages = query.order_by(ChatMessage.created_at.desc()).limit(20).all()
     
-    messages = query.order_by(ChatMessage.created_at.desc()).limit(50).all()
+    message_list = []
+    for msg in messages:
+        message_list.append({
+            'id': msg.id,
+            'content': msg.content,
+            'user_id': msg.user_id,
+            'user_name': msg.user.dao_name or msg.user.username,
+            'created_at': msg.created_at.isoformat()
+        })
     
-    return jsonify([{
-        'id': msg.id,
-        'username': msg.user.username,
-        'dao_name': msg.user.dao_name or msg.user.username,
-        'content': msg.content,
-        'created_at': msg.created_at.strftime('%H:%M:%S')
-    } for msg in messages])
+    return jsonify({'success': True, 'messages': message_list})
+
+

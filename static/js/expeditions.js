@@ -1,3 +1,66 @@
+// Global expedition functions
+function openCreateExpeditionModal() {
+    const modal = document.getElementById('createExpeditionModal');
+    if (modal) {
+        modal.style.display = 'block';
+        modal.classList.add('show');
+        modal.style.backgroundColor = 'rgba(15, 15, 35, 0.8)';
+        document.body.style.overflow = 'hidden';
+        
+        // Reset form
+        const form = document.getElementById('createExpeditionForm');
+        if (form) form.reset();
+        
+        // Add click outside to close
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                closeCreateExpeditionModal();
+            }
+        });
+    }
+}
+
+function closeCreateExpeditionModal() {
+    const modal = document.getElementById('createExpeditionModal');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.remove('show');
+        document.body.style.overflow = '';
+        
+        // Remove any lingering backdrops
+        const backdrops = document.querySelectorAll('.modal-backdrop');
+        backdrops.forEach(backdrop => backdrop.remove());
+        document.body.classList.remove('modal-open');
+        document.body.style.paddingRight = '';
+    }
+}
+
+async function joinExpedition(expeditionId) {
+    if (!confirm('Bạn có chắc muốn tham gia đạo lữ này?')) return;
+    
+    try {
+        const response = await fetch('/api/join-expedition', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ expedition_id: expeditionId })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert('Đã tham gia đạo lữ thành công!');
+            location.reload();
+        } else {
+            alert('Lỗi: ' + (data.error || 'Không thể tham gia'));
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Có lỗi xảy ra!');
+    }
+}
+
 // Expeditions JavaScript functionality
 class ExpeditionManager {
     constructor() {
