@@ -26,6 +26,14 @@ class User(UserMixin, db.Model):
     pills_count = db.Column(db.Integer, default=5)
     artifacts_count = db.Column(db.Integer, default=1)
     
+    # Mining system
+    mining_level = db.Column(db.Integer, default=1)
+    mining_experience = db.Column(db.Integer, default=0)
+    last_mining = db.Column(db.DateTime, default=datetime.utcnow)
+    
+    # Free benefits
+    free_world_opening_used = db.Column(db.Boolean, default=False)
+    
     # Timestamps
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
     last_cultivation = db.Column(db.DateTime, default=datetime.utcnow)

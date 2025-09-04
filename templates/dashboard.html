@@ -52,14 +52,39 @@
                         </div>
                     </div>
                     
+                    <!-- Mining Stats -->
+                    <div class="mining-stats-section mt-4 mb-3">
+                        <h6 class="text-purple mb-3">
+                            <i class="fas fa-pickaxe me-2"></i>Thống Kê Khai Thác
+                        </h6>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="mini-stat-box">
+                                    <div class="text-golden">Cấp {{ current_user.mining_level }}</div>
+                                    <small class="text-muted">Khai Thác</small>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="mini-stat-box">
+                                    <div class="text-celestial">{{ current_user.mining_experience }}/{{ current_user.mining_level * 100 }}</div>
+                                    <small class="text-muted">Kinh Nghiệm</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
                     <!-- Quick Actions -->
                     <div class="mt-4">
                         <button class="btn btn-golden w-100 mb-2 mystical-btn" onclick="cultivate()">
                             <i class="fas fa-meditation me-2"></i>Tu Luyện
                         </button>
                         
+                        <a href="{{ url_for('mining') }}" class="btn btn-purple w-100 mb-2 mystical-btn">
+                            <i class="fas fa-pickaxe me-2"></i>Mỏ Linh Thạch
+                        </a>
+                        
                         {% if not current_user.guild_id %}
-                        <button class="btn btn-purple w-100 mystical-btn" data-bs-toggle="modal" data-bs-target="#createGuildModal">
+                        <button class="btn btn-secondary w-100 mystical-btn" data-bs-toggle="modal" data-bs-target="#createGuildModal">
                             <i class="fas fa-plus me-2"></i>Tạo Bang Hội
                         </button>
                         {% endif %}

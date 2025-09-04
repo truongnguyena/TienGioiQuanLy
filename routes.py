@@ -226,6 +226,96 @@ def cultivate():
         'cultivation_level': current_user.cultivation_level
     })
 
+@app.route('/api/mine-stones', methods=['POST'])
+@login_required
+def mine_stones():
+    # Check if user can mine (every 2 hours)
+    if current_user.last_mining:
+        time_diff = datetime.utcnow() - current_user.last_mining
+        if time_diff.total_seconds() < 7200:  # 2 hours cooldown
+            remaining = 7200 - time_diff.total_seconds()
+            return jsonify({
+                'success': False, 
+                'error': f'Còn {int(remaining//60)} phút nữa mới có thể đào tiếp!',
+                'cooldown': remaining
+            })
+    
+    # Calculate mining yield based on level
+    base_yield = 50 + (current_user.mining_level * 25)
+    mining_bonus = random.randint(0, current_user.mining_level * 10)
+    total_yield = base_yield + mining_bonus
+    
+    # Add stones to user
+    current_user.spiritual_stones += total_yield
+    current_user.mining_experience += 10
+    current_user.last_mining = datetime.utcnow()
+    
+    # Check for mining level up
+    level_up = False
+    if current_user.mining_experience >= (current_user.mining_level * 100):
+        current_user.mining_level += 1
+        current_user.mining_experience = 0
+        level_up = True
+    
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'stones_mined': total_yield,
+        'new_total': current_user.spiritual_stones,
+        'mining_level': current_user.mining_level,
+        'mining_exp': current_user.mining_experience,
+        'level_up': level_up
+    })
+
+@app.route('/api/create-world-free', methods=['POST'])
+@login_required  
+def create_world_free():
+    if current_user.free_world_opening_used:
+        return jsonify({'success': False, 'error': 'Bạn đã sử dụng lượt mở thế giới miễn phí rồi!'})
+    
+    name = request.json.get('name')
+    world_type = request.json.get('world_type', 'Linh Giới')
+    description = request.json.get('description', '')
+    
+    if not name or len(name) < 3:
+        return jsonify({'success': False, 'error': 'Tên thế giới phải có ít nhất 3 ký tự!'})
+    
+    # Create the world
+    world = World(
+        name=name,
+        world_type=world_type,
+        description=description,
+        owner_id=current_user.id,
+        spiritual_density=random.randint(40, 80),
+        danger_level=random.randint(1, 3),
+        resource_richness=random.randint(30, 70),
+        spiritual_stones_production=random.randint(100, 300)
+    )
+    
+    # Mark free opening as used
+    current_user.free_world_opening_used = True
+    
+    db.session.add(world)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True, 
+        'message': f'Đã tạo thế giới "{name}" thành công!',
+        'world': {
+            'id': world.id,
+            'name': world.name,
+            'type': world.world_type,
+            'spiritual_density': world.spiritual_density,
+            'production': world.spiritual_stones_production
+        }
+    })
+
+@app.route('/mining')
+@login_required
+def mining():
+    return render_template('mining.html')
+
 @app.route('/api/send-message', methods=['POST'])
 @login_required
 def send_message():

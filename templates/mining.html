@@ -1,0 +1,439 @@
+{% extends "base.html" %}
+
+{% block title %}Mỏ Linh Thạch - Tu Tiên Cộng Đồng{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="page-header mb-4">
+                <h1 class="text-golden">
+                    <i class="fas fa-pickaxe me-3"></i>Mỏ Linh Thạch
+                </h1>
+                <p class="text-light opacity-75">Đào khai linh thạch để tăng cường tu vi</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Mining Panel -->
+        <div class="col-lg-8 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-celestial mb-0">
+                        <i class="fas fa-mountain me-2"></i>Khu Vực Khai Thác
+                    </h5>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mining-scene mb-4">
+                        <div class="mining-visual">
+                            <i class="fas fa-mountain text-purple" style="font-size: 8rem; opacity: 0.7;"></i>
+                            <div class="mining-effects" id="miningEffects"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="mining-info mb-4">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="stat-box">
+                                    <h6 class="text-golden">Cấp Độ Khai Thác</h6>
+                                    <span class="stat-number text-purple" id="miningLevel">{{ current_user.mining_level }}</span>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-box">
+                                    <h6 class="text-golden">Kinh Nghiệm</h6>
+                                    <span class="stat-number text-celestial" id="miningExp">{{ current_user.mining_experience }}</span>
+                                    <small class="text-muted d-block">/ {{ current_user.mining_level * 100 }}</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="stat-box">
+                                    <h6 class="text-golden">Linh Thạch</h6>
+                                    <span class="stat-number text-warning" id="currentStones">{{ "{:,}".format(current_user.spiritual_stones) }}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mining-progress mb-4">
+                        <div class="progress mystical-progress">
+                            <div class="progress-bar progress-bar-celestial" id="miningProgressBar" 
+                                 style="width: {{ (current_user.mining_experience / (current_user.mining_level * 100) * 100) }}%"></div>
+                        </div>
+                        <small class="text-muted">Tiến độ lên cấp</small>
+                    </div>
+
+                    <button class="btn btn-lg btn-golden mystical-btn" id="mineButton" onclick="startMining()">
+                        <i class="fas fa-pickaxe me-2"></i>Bắt Đầu Khai Thác
+                    </button>
+                    
+                    <div class="cooldown-info mt-3" id="cooldownInfo" style="display: none;">
+                        <span class="text-warning">
+                            <i class="fas fa-clock me-2"></i>Còn <span id="cooldownTime">00:00</span> nữa mới có thể khai thác tiếp
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Free World Opening -->
+        <div class="col-lg-4 mb-4">
+            <div class="mystical-card">
+                <div class="card-header">
+                    <h5 class="text-golden mb-0">
+                        <i class="fas fa-globe me-2"></i>Mở Thế Giới Miễn Phí
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if not current_user.free_world_opening_used %}
+                    <div class="text-center">
+                        <div class="free-world-icon mb-3">
+                            <i class="fas fa-gift text-golden" style="font-size: 4rem;"></i>
+                        </div>
+                        <h6 class="text-celestial mb-3">Phúc Lợi Tân Thủ</h6>
+                        <p class="text-light mb-4">Bạn được tặng 1 lần mở thế giới miễn phí! Hãy tạo ra thế giới riêng của mình.</p>
+                        
+                        <button class="btn btn-purple mystical-btn" data-bs-toggle="modal" data-bs-target="#createFreeWorldModal">
+                            <i class="fas fa-plus me-2"></i>Tạo Thế Giới Miễn Phí
+                        </button>
+                    </div>
+                    {% else %}
+                    <div class="text-center">
+                        <div class="used-benefit-icon mb-3">
+                            <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                        </div>
+                        <h6 class="text-success mb-3">Đã Sử Dụng</h6>
+                        <p class="text-muted">Bạn đã sử dụng lượt mở thế giới miễn phí.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Mining Tips -->
+            <div class="mystical-card mt-4">
+                <div class="card-header">
+                    <h6 class="text-celestial mb-0">
+                        <i class="fas fa-lightbulb me-2"></i>Mẹo Khai Thác
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <ul class="mining-tips text-sm">
+                        <li class="mb-2">
+                            <i class="fas fa-clock text-purple me-2"></i>
+                            Có thể khai thác mỗi 2 giờ
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-level-up-alt text-celestial me-2"></i>
+                            Cấp độ cao = nhiều linh thạch hơn
+                        </li>
+                        <li class="mb-2">
+                            <i class="fas fa-gem text-golden me-2"></i>
+                            Kinh nghiệm giúp nâng cấp
+                        </li>
+                        <li>
+                            <i class="fas fa-globe text-success me-2"></i>
+                            Thế giới riêng tăng sản lượng
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Free World Creation Modal -->
+<div class="modal fade" id="createFreeWorldModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content mystical-modal">
+            <div class="modal-header">
+                <h5 class="modal-title text-golden">
+                    <i class="fas fa-globe me-2"></i>Tạo Thế Giới Miễn Phí
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="createFreeWorldForm">
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Tên Thế Giới</label>
+                        <input type="text" class="form-control mystical-input" name="name" required 
+                               placeholder="Nhập tên thế giới...">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Loại Thế Giới</label>
+                        <select class="form-select mystical-input" name="world_type">
+                            <option value="Linh Giới">Linh Giới - Nhiều linh khí</option>
+                            <option value="Ma Cảnh">Ma Cảnh - Nguy hiểm cao</option>
+                            <option value="Thiên Giới">Thiên Giới - Phúc lành</option>
+                            <option value="Huyền Giới">Huyền Giới - Bí ẩn</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label text-celestial">Mô Tả</label>
+                        <textarea class="form-control mystical-input" name="description" rows="3" 
+                                  placeholder="Mô tả thế giới của bạn..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                <button type="button" class="btn btn-golden mystical-btn" onclick="createFreeWorld()">
+                    <i class="fas fa-plus me-2"></i>Tạo Thế Giới
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.mining-scene {
+    position: relative;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.mining-visual {
+    position: relative;
+}
+
+.mining-effects {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.stat-box {
+    background: rgba(26, 26, 46, 0.6);
+    border: 1px solid rgba(255, 215, 0, 0.2);
+    border-radius: 10px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: bold;
+    display: block;
+}
+
+.mystical-progress {
+    height: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar-celestial {
+    background: linear-gradient(90deg, var(--celestial), var(--purple));
+    border-radius: 5px;
+}
+
+.mining-tips li {
+    color: var(--text-light);
+    list-style: none;
+}
+
+.free-world-icon {
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+}
+
+@keyframes miningEffect {
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) scale(2);
+        opacity: 0;
+    }
+}
+
+.mining-spark {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    background: var(--golden);
+    border-radius: 50%;
+    animation: miningEffect 1s ease-out forwards;
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+let miningCooldown = null;
+
+function startMining() {
+    const button = document.getElementById('mineButton');
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Đang Khai Thác...';
+    
+    // Show mining effects
+    showMiningEffects();
+    
+    fetch('/api/mine-stones', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Update displays
+            document.getElementById('miningLevel').textContent = data.mining_level;
+            document.getElementById('miningExp').textContent = data.mining_exp;
+            document.getElementById('currentStones').textContent = data.new_total.toLocaleString();
+            
+            // Update progress bar
+            const maxExp = data.mining_level * 100;
+            const progressPercent = (data.mining_exp / maxExp) * 100;
+            document.getElementById('miningProgressBar').style.width = progressPercent + '%';
+            
+            // Show result notification
+            window.tuTienApp.showNotification(
+                'Khai Thác Thành Công!', 
+                `Đã thu được ${data.stones_mined} linh thạch!`, 
+                'success'
+            );
+            
+            if (data.level_up) {
+                setTimeout(() => {
+                    window.tuTienApp.showNotification(
+                        'Thăng Cấp!', 
+                        `Đã đạt cấp độ khai thác ${data.mining_level}!`, 
+                        'success'
+                    );
+                }, 1000);
+            }
+            
+            // Start cooldown
+            startCooldown(7200); // 2 hours
+        } else {
+            window.tuTienApp.showNotification('Lỗi Khai Thác', data.error, 'error');
+            if (data.cooldown) {
+                startCooldown(data.cooldown);
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Mining error:', error);
+        window.tuTienApp.showNotification('Lỗi', 'Không thể khai thác!', 'error');
+    })
+    .finally(() => {
+        button.disabled = false;
+        button.innerHTML = '<i class="fas fa-pickaxe me-2"></i>Bắt Đầu Khai Thác';
+    });
+}
+
+function showMiningEffects() {
+    const effectsContainer = document.getElementById('miningEffects');
+    
+    for (let i = 0; i < 8; i++) {
+        setTimeout(() => {
+            const spark = document.createElement('div');
+            spark.className = 'mining-spark';
+            spark.style.left = Math.random() * 100 + 'px';
+            spark.style.top = Math.random() * 100 + 'px';
+            effectsContainer.appendChild(spark);
+            
+            setTimeout(() => {
+                spark.remove();
+            }, 1000);
+        }, i * 200);
+    }
+}
+
+function startCooldown(seconds) {
+    const button = document.getElementById('mineButton');
+    const cooldownInfo = document.getElementById('cooldownInfo');
+    const cooldownTime = document.getElementById('cooldownTime');
+    
+    button.disabled = true;
+    button.innerHTML = '<i class="fas fa-clock me-2"></i>Đang Hồi Phục...';
+    cooldownInfo.style.display = 'block';
+    
+    let remainingTime = seconds;
+    
+    miningCooldown = setInterval(() => {
+        remainingTime--;
+        
+        const hours = Math.floor(remainingTime / 3600);
+        const minutes = Math.floor((remainingTime % 3600) / 60);
+        const secs = remainingTime % 60;
+        
+        cooldownTime.textContent = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        
+        if (remainingTime <= 0) {
+            clearInterval(miningCooldown);
+            button.disabled = false;
+            button.innerHTML = '<i class="fas fa-pickaxe me-2"></i>Bắt Đầu Khai Thác';
+            cooldownInfo.style.display = 'none';
+        }
+    }, 1000);
+}
+
+function createFreeWorld() {
+    const form = document.getElementById('createFreeWorldForm');
+    const formData = new FormData(form);
+    
+    const worldData = {
+        name: formData.get('name'),
+        world_type: formData.get('world_type'),
+        description: formData.get('description')
+    };
+    
+    fetch('/api/create-world-free', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: JSON.stringify(worldData)
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.tuTienApp.showNotification(
+                'Thế Giới Mới!', 
+                data.message, 
+                'success'
+            );
+            
+            // Close modal and refresh page
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createFreeWorldModal'));
+            modal.hide();
+            
+            setTimeout(() => {
+                location.reload();
+            }, 2000);
+        } else {
+            window.tuTienApp.showNotification('Lỗi', data.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('World creation error:', error);
+        window.tuTienApp.showNotification('Lỗi', 'Không thể tạo thế giới!', 'error');
+    });
+}
+
+// Check initial cooldown on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // You can add initial cooldown check here if needed
+});
+</script>
+{% endblock %}
