@@ -650,48 +650,64 @@ def create_expedition():
 @app.route('/api/upgrade-test-account', methods=['POST'])
 @login_required
 def upgrade_test_account():
-    """Nâng cấp tài khoản test lên cảnh giới Toàn Chi Thiên Đạo"""
+    """Nâng cấp tài khoản test lên cảnh giới Toàn Chi Thiên Đạo Đại Viên Mãn"""
     
-    # Chỉ admin hoặc tài khoản test mới được sử dụng
-    if not current_user.is_admin and 'test' not in current_user.username.lower():
+    # Chỉ admin hoặc tài khoản có tên "thiendao" mới được sử dụng
+    if not current_user.is_admin and 'thiendao' not in current_user.username.lower() and 'test' not in current_user.username.lower():
         return jsonify({
             'success': False, 
-            'error': 'Chỉ tài khoản test hoặc admin mới có thể nâng cấp!'
+            'error': 'Chỉ tài khoản thiendao, test hoặc admin mới có thể nâng cấp!'
         })
     
     try:
-        # Nâng cấp lên cảnh giới Toàn Chi Thiên Đạo
-        current_user.cultivation_level = "Toàn Chi Thiên Đạo Sơ Kỳ"
-        current_user.spiritual_power = 3000000  # 3 triệu linh lực
-        current_user.spiritual_stones = 1000000  # 1 triệu linh thạch
-        current_user.cultivation_points = 500000  # 500k điểm tu luyện
-        current_user.pills_count = 1000  # 1000 đan dược
-        current_user.artifacts_count = 100  # 100 pháp bảo
-        current_user.reputation = 100000  # 100k danh tiếng
-        current_user.karma_points = 50000  # 50k nghiệp lực
-        current_user.mining_level = 50  # Level 50 đào mỏ
+        # Nâng cấp lên cảnh giới Toàn Chi Thiên Đạo Đại Viên Mãn
+        current_user.cultivation_level = "Toàn Chi Thiên Đạo Đại Viên Mãn"
+        current_user.spiritual_power = 999999999999  # 999 tỷ linh lực (max level)
+        current_user.spiritual_stones = 999999999  # 999 triệu linh thạch
+        current_user.cultivation_points = 10000000  # 10 triệu điểm tu luyện
+        current_user.pills_count = 99999  # 99,999 đan dược
+        current_user.artifacts_count = 9999  # 9,999 pháp bảo
+        current_user.reputation = 1000000  # 1 triệu danh tiếng
+        current_user.karma_points = 999999  # 999,999 nghiệp lực
+        current_user.mining_level = 999  # Level 999 đào mỏ (max)
         current_user.mining_experience = 0
+        
+        # Mở khóa toàn bộ quyền năng hệ thống
+        current_user.is_admin = True  # Admin privileges
+        current_user.free_world_opening_used = False  # Reset world opening
         
         # Thêm achievement đặc biệt
         achievement = Achievement(
             user_id=current_user.id,
-            title="Toàn Chi Thiên Đạo - Bất Tử Truyền Thuyết",
-            description="Đạt được cảnh giới huyền thoại Toàn Chi Thiên Đạo, vượt qua mọi giới hạn của thế gian",
+            title="Toàn Chi Thiên Đạo Đại Viên Mãn - Chí Tôn",
+            description="Đạt được đỉnh cao tuyệt đối của tu tiên, vượt qua mọi giới hạn, thành tựu vô thượng chí tôn!",
             category="cultivation",
             rarity="legendary"
         )
         db.session.add(achievement)
         
+        # Thêm achievement hệ thống
+        system_achievement = Achievement(
+            user_id=current_user.id,
+            title="Hệ Thống Chi Chủ - Toàn Quyền",
+            description="Mở khóa toàn bộ quyền năng hệ thống, trở thành chủ tể của thế giới tu tiên",
+            category="system",
+            rarity="legendary"
+        )
+        db.session.add(system_achievement)
+        
         db.session.commit()
         
         return jsonify({
             'success': True,
-            'message': 'Đã nâng cấp thành công lên cảnh giới Toàn Chi Thiên Đạo!',
+            'message': 'Đã nâng cấp thành công lên Toàn Chi Thiên Đạo Đại Viên Mãn! Mở khóa toàn bộ quyền năng hệ thống!',
             'new_stats': {
                 'cultivation_level': current_user.cultivation_level,
                 'spiritual_power': current_user.spiritual_power,
                 'spiritual_stones': current_user.spiritual_stones,
-                'cultivation_points': current_user.cultivation_points
+                'cultivation_points': current_user.cultivation_points,
+                'is_admin': current_user.is_admin,
+                'mining_level': current_user.mining_level
             }
         })
         

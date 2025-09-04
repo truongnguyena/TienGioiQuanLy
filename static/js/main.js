@@ -493,7 +493,8 @@ class TuTienApp {
             'Hợp Thể': '#fd7e14',
             'Đại Thừa': '#e83e8c',
             'Độ Kiếp': '#6f42c1',
-            'Tản Tiên': '#ffd700'
+            'Tản Tiên': '#ffd700',
+            'Toàn Chi Thiên Đạo': '#ff0080'  // Màu hồng tím huyền thoại
         };
         
         for (const [stageName, color] of Object.entries(colorMap)) {

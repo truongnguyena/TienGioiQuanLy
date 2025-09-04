@@ -18,7 +18,8 @@ class CultivationAI:
             "Hợp Thể": {"min_power": 20000000, "max_power": 100000000},
             "Đại Thừa": {"min_power": 100000000, "max_power": 500000000},
             "Độ Kiếp": {"min_power": 500000000, "max_power": 2000000000},
-            "Tản Tiên": {"min_power": 2000000000, "max_power": 10000000000}
+            "Tản Tiên": {"min_power": 2000000000, "max_power": 10000000000},
+            "Toàn Chi Thiên Đạo": {"min_power": 10000000000, "max_power": 999999999999}
         }
 
     def _build_detailed_stages(self):
@@ -34,7 +35,8 @@ class CultivationAI:
             ("Hợp Thể", 20000000, 100000000),
             ("Đại Thừa", 100000000, 500000000),
             ("Độ Kiếp", 500000000, 2000000000),
-            ("Tản Tiên", 2000000000, 10000000000)
+            ("Tản Tiên", 2000000000, 10000000000),
+            ("Toàn Chi Thiên Đạo", 10000000000, 999999999999)
         ]
 
         for stage_name, min_power, max_power in major_stages:
@@ -57,6 +59,21 @@ class CultivationAI:
                 "min_power": min_power + 9 * step,
                 "max_power": max_power,
                 "major_stage": stage_name
+            }
+        
+        # Cấu trúc đặc biệt cho Toàn Chi Thiên Đạo
+        special_stages = ["Sơ Kỳ", "Trung Kỳ", "Hậu Kỳ", "Đại Viên Mãn"]
+        toal_min = 10000000000
+        toal_max = 999999999999
+        toal_step = (toal_max - toal_min) // 4
+        
+        for i, substage in enumerate(special_stages):
+            substage_min = toal_min + i * toal_step
+            substage_max = toal_min + (i + 1) * toal_step if i < 3 else toal_max
+            stages[f"Toàn Chi Thiên Đạo {substage}"] = {
+                "min_power": substage_min,
+                "max_power": substage_max,
+                "major_stage": "Toàn Chi Thiên Đạo"
             }
 
         self.weather_conditions = [
