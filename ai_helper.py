@@ -59,8 +59,6 @@ class CultivationAI:
                 "major_stage": stage_name
             }
         
-        return stages
-        
         self.weather_conditions = [
             "Linh Khí Dồi Dào - Tu luyện tăng 20%",
             "Thiên Lôi Tụ Tập - Nguy hiểm tăng nhưng breakthrough dễ hơn",
@@ -68,6 +66,8 @@ class CultivationAI:
             "Ma Khí Xâm Nhập - Tu luyện chậm nhưng tăng kháng ma",
             "Thiên Nhiên Linh Khí - Tăng cường khả năng hấp thụ linh khí"
         ]
+        
+        return stages
     
     def predict_cultivation_fortune(self, user):
         """Dự đoán vận mệnh tu luyện của người dùng"""
@@ -102,6 +102,8 @@ class CultivationAI:
         if not stage_info:
             # Fallback to first stage if not found
             stage_info = self.cultivation_stages.get("Luyện Khí Tầng 1")
+            if not stage_info:
+                stage_info = {"min_power": 0, "max_power": 1000, "major_stage": "Luyện Khí"}
         
         # Phân tích tiến độ
         power_range = stage_info["max_power"] - stage_info["min_power"]

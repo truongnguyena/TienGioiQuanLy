@@ -1,0 +1,36 @@
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): api.perplexity.ai:443
+DEBUG:urllib3.connectionpool:https://api.perplexity.ai:443 "POST /chat/completions HTTP/1.1" 400 213
+Perplexity API error: 400 Client Error: Bad Request for url: https://api.perplexity.ai/chat/completions
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): api.perplexity.ai:443
+DEBUG:urllib3.connectionpool:https://api.perplexity.ai:443 "POST /chat/completions HTTP/1.1" 400 213
+Perplexity API error: 400 Client Error: Bad Request for url: https://api.perplexity.ai/chat/completions
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): api.perplexity.ai:443
+DEBUG:urllib3.connectionpool:https://api.perplexity.ai:443 "POST /chat/completions HTTP/1.1" 400 213
+Perplexity API error: 400 Client Error: Bad Request for url: https://api.perplexity.ai/chat/completions
+DEBUG:urllib3.connectionpool:Starting new HTTPS connection (1): api.perplexity.ai:443
+DEBUG:urllib3.connectionpool:https://api.perplexity.ai:443 "POST /chat/completions HTTP/1.1" 400 213
+Perplexity API error: 400 Client Error: Bad Request for url: https://api.perplexity.ai/chat/completions
+ERROR:app:Exception on /dashboard [GET]
+Traceback (most recent call last):
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 1511, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 919, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 917, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask/app.py", line 902, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)  # type: ignore[no-any-return]
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/.pythonlibs/lib/python3.11/site-packages/flask_login/utils.py", line 290, in decorated_view
+    return current_app.ensure_sync(func)(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/routes.py", line 87, in dashboard
+    weather = cultivation_ai.get_weather_forecast()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/workspace/ai_helper.py", line 158, in get_weather_forecast
+    "current": random.choice(self.weather_conditions),
+                             ^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CultivationAI' object has no attribute 'weather_conditions'

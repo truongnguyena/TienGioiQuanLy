@@ -13,8 +13,12 @@ from ai_helper import cultivation_ai
 try:
     from perplexity_helper import perplexity_manager
     PERPLEXITY_AVAILABLE = True
+except ImportError:
+    perplexity_manager = None
+    PERPLEXITY_AVAILABLE = False
 except Exception as e:
     print(f"Perplexity AI not available: {e}")
+    perplexity_manager = None
     PERPLEXITY_AVAILABLE = False
 
 @app.route('/')
@@ -691,7 +695,10 @@ def ai_cultivation_advice():
             'cultivation_points': current_user.cultivation_points
         }
         
-        advice = perplexity_manager.get_cultivation_advice(user_data)
+        if perplexity_manager:
+            advice = perplexity_manager.get_cultivation_advice(user_data)
+        else:
+            advice = "AI hỗ trợ chưa sẵn sàng!"
         
         return jsonify({
             'success': True,
@@ -735,7 +742,10 @@ def ai_guild_management():
         
         user_role = "Bang Chủ" if guild.leader_id == current_user.id else "Thành Viên"
         
-        advice = perplexity_manager.get_guild_management_advice(guild_data, user_role)
+        if perplexity_manager:
+            advice = perplexity_manager.get_guild_management_advice(guild_data, user_role)
+        else:
+            advice = "AI hỗ trợ chưa sẵn sàng!"
         
         return jsonify({
             'success': True,
@@ -788,7 +798,10 @@ def ai_expedition_advice():
                     'min_cultivation': current_user.cultivation_level
                 }
         
-        advice = perplexity_manager.get_expedition_advice(expedition_data, context)
+        if perplexity_manager:
+            advice = perplexity_manager.get_expedition_advice(expedition_data, context)
+        else:
+            advice = "AI hỗ trợ chưa sẵn sàng!"
         
         return jsonify({
             'success': True,
@@ -824,7 +837,10 @@ def ai_resource_optimization():
         
         goals = request.json.get('goals', []) if request.json else []
         
-        advice = perplexity_manager.get_resource_optimization_advice(user_resources, goals)
+        if perplexity_manager:
+            advice = perplexity_manager.get_resource_optimization_advice(user_resources, goals)
+        else:
+            advice = "AI hỗ trợ chưa sẵn sàng!"
         
         return jsonify({
             'success': True,
@@ -864,7 +880,10 @@ def ai_general_advice():
             'guild': Guild.query.get(current_user.guild_id).name if current_user.guild_id else None
         }
         
-        advice = perplexity_manager.get_general_advice(question, context)
+        if perplexity_manager:
+            advice = perplexity_manager.get_general_advice(question, context)
+        else:
+            advice = "AI hỗ trợ chưa sẵn sàng!"
         
         return jsonify({
             'success': True,
