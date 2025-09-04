@@ -199,7 +199,7 @@ def cultivate():
     current_stage = current_user.get_cultivation_stage()
     stage_info = cultivation_ai.cultivation_stages.get(current_stage)
     
-    if current_user.spiritual_power >= stage_info["max_power"]:
+    if stage_info and current_user.spiritual_power >= stage_info["max_power"]:
         # Level up logic
         next_stages = list(cultivation_ai.cultivation_stages.keys())
         current_index = next_stages.index(current_stage)
@@ -274,6 +274,10 @@ def create_world_free():
     if current_user.free_world_opening_used:
         return jsonify({'success': False, 'error': 'Bạn đã sử dụng lượt mở thế giới miễn phí rồi!'})
     
+    # Validate JSON request
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Dữ liệu JSON không hợp lệ!'})
+    
     name = request.json.get('name')
     world_type = request.json.get('world_type', 'Linh Giới')
     description = request.json.get('description', '')
@@ -296,20 +300,24 @@ def create_world_free():
     # Mark free opening as used
     current_user.free_world_opening_used = True
     
-    db.session.add(world)
-    db.session.commit()
-    
-    return jsonify({
-        'success': True, 
-        'message': f'Đã tạo thế giới "{name}" thành công!',
-        'world': {
-            'id': world.id,
-            'name': world.name,
-            'type': world.world_type,
-            'spiritual_density': world.spiritual_density,
-            'production': world.spiritual_stones_production
-        }
-    })
+    try:
+        db.session.add(world)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True, 
+            'message': f'Đã tạo thế giới "{name}" thành công!',
+            'world': {
+                'id': world.id,
+                'name': world.name,
+                'type': world.world_type,
+                'spiritual_density': world.spiritual_density,
+                'production': world.spiritual_stones_production
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Lỗi khi tạo thế giới. Vui lòng thử lại!'})
 
 @app.route('/api/explore-world/<int:world_id>', methods=['POST'])
 @login_required
@@ -329,7 +337,6 @@ def explore_world(world_id):
     current_user.spiritual_power -= energy_cost
     
     # Calculate rewards based on world properties
-    import random
     base_stones = world.spiritual_stones_production // 10
     bonus_stones = random.randint(base_stones, base_stones * 2)
     
@@ -370,6 +377,10 @@ def upgrade_world(world_id):
     if world.owner_id != current_user.id:
         return jsonify({'success': False, 'error': 'Bạn không sở hữu thế giới này!'})
     
+    # Validate JSON request
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Dữ liệu JSON không hợp lệ!'})
+    
     upgrade_type = request.json.get('upgrade_type')
     
     # Calculate upgrade cost
@@ -400,18 +411,22 @@ def upgrade_world(world_id):
     # Deduct cost
     current_user.spiritual_stones -= upgrade_cost
     
-    db.session.commit()
-    
-    return jsonify({
-        'success': True,
-        'message': f'Nâng cấp {upgrade_name} thành công!',
-        'upgrade_cost': upgrade_cost,
-        'world': {
-            'spiritual_density': world.spiritual_density,
-            'resource_richness': world.resource_richness,
-            'production': world.spiritual_stones_production
-        }
-    })
+    try:
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Nâng cấp {upgrade_name} thành công!',
+            'upgrade_cost': upgrade_cost,
+            'world': {
+                'spiritual_density': world.spiritual_density,
+                'resource_richness': world.resource_richness,
+                'production': world.spiritual_stones_production
+            }
+        })
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Lỗi khi nâng cấp. Vui lòng thử lại!'})
 
 @app.route('/mining')
 @login_required
@@ -421,6 +436,10 @@ def mining():
 @app.route('/api/send-message', methods=['POST'])
 @login_required
 def send_message():
+    # Validate JSON request
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Dữ liệu JSON không hợp lệ!'})
+    
     content = request.json.get('content')
     channel = request.json.get('channel', 'general')
     channel_id = request.json.get('channel_id')
@@ -474,6 +493,10 @@ def create_guild():
     if current_user.guild_id:
         return jsonify({'success': False, 'error': 'Bạn đã có bang hội rồi!'})
     
+    # Validate JSON request
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Dữ liệu JSON không hợp lệ!'})
+    
     name = request.json.get('name')
     description = request.json.get('description', '')
     
@@ -495,18 +518,27 @@ def create_guild():
     )
     
     current_user.spiritual_stones -= guild_cost
-    db.session.add(guild)
-    db.session.commit()
     
-    # Update user's guild
-    current_user.guild_id = guild.id
-    db.session.commit()
-    
-    return jsonify({'success': True, 'message': 'Tạo bang hội thành công!'})
+    try:
+        db.session.add(guild)
+        db.session.commit()
+        
+        # Update user's guild
+        current_user.guild_id = guild.id
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Tạo bang hội thành công!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Lỗi khi tạo bang hội. Vui lòng thử lại!'})
 
 @app.route('/api/create-expedition', methods=['POST'])
 @login_required
 def create_expedition():
+    # Validate JSON request
+    if not request.json:
+        return jsonify({'success': False, 'error': 'Dữ liệu JSON không hợp lệ!'})
+    
     data = request.json
     
     name = data.get('name')
@@ -538,10 +570,15 @@ def create_expedition():
     )
     
     current_user.spiritual_stones -= expedition_cost
-    db.session.add(expedition)
-    db.session.commit()
     
-    return jsonify({'success': True, 'message': 'Tạo đạo lữ thành công!'})
+    try:
+        db.session.add(expedition)
+        db.session.commit()
+        
+        return jsonify({'success': True, 'message': 'Tạo đạo lữ thành công!'})
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': 'Lỗi khi tạo đạo lữ. Vui lòng thử lại!'})
 
 @app.route('/api/get-messages', methods=['GET'])
 @login_required  
