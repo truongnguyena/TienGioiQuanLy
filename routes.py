@@ -10,6 +10,7 @@ from app import app, db, cache
 from models import User, Guild, World, GuildWar, Expedition, ExpeditionParticipant, ChatMessage, Achievement
 from db_optimizer import DatabaseOptimizer
 from ai_helper import cultivation_ai
+from ai_tutien_girl import get_ai_response, get_ai_status
 
 # Import Perplexity AI helper
 try:
@@ -1687,3 +1688,88 @@ def get_world_details(world_id):
         
     except Exception as e:
         return jsonify({'success': False, 'error': f'Lỗi khi tải thông tin: {str(e)}'})
+
+@app.route('/ai-chat')
+@login_required
+def ai_chat():
+    """AI Tu Tiên Chat page"""
+    return render_template('ai_chat.html')
+
+@app.route('/api/ai/chat', methods=['POST'])
+def api_ai_chat():
+    """API endpoint for AI chat"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '')
+        context = data.get('context', {})
+        
+        if not message:
+            return jsonify({
+                'success': False,
+                'error': 'Message is required'
+            }), 400
+        
+        # Get AI response
+        response = get_ai_response(message, context)
+        
+        return jsonify({
+            'success': True,
+            'data': response
+        })
+        
+    except Exception as e:
+        print(f"AI chat error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process message'
+        }), 500
+
+@app.route('/api/ai/status')
+def api_ai_status():
+    """Get AI status"""
+    try:
+        status = get_ai_status()
+        return jsonify({
+            'success': True,
+            'data': status
+        })
+    except Exception as e:
+        print(f"AI status error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to get AI status'
+        }), 500
+
+@app.route('/api/ai/personality', methods=['GET', 'POST'])
+def api_ai_personality():
+    """Get or update AI personality"""
+    try:
+        if request.method == 'GET':
+            # Get current personality
+            status = get_ai_status()
+            return jsonify({
+                'success': True,
+                'data': {
+                    'personality': status.get('personality', {}),
+                    'cultivation_level': status.get('cultivation_level', 'Nguyên Anh Tầng 3'),
+                    'special_abilities': status.get('special_abilities', [])
+                }
+            })
+        else:
+            # Update personality
+            data = request.get_json()
+            personality = data.get('personality', {})
+            
+            # Here you would update the AI personality
+            # For now, just return success
+            return jsonify({
+                'success': True,
+                'message': 'Personality updated successfully'
+            })
+            
+    except Exception as e:
+        print(f"AI personality error: {e}")
+        return jsonify({
+            'success': False,
+            'error': 'Failed to process personality request'
+        }), 500

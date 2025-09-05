@@ -1,0 +1,59 @@
+{
+  "name": "tutien-ai-chat",
+  "version": "1.0.0",
+  "description": "Node.js Real-time Chat Server for Tu Tien AI Girl",
+  "main": "nodejs_chat_server.js",
+  "scripts": {
+    "start": "node nodejs_chat_server.js",
+    "dev": "nodemon nodejs_chat_server.js",
+    "test": "jest",
+    "build": "echo 'No build step required'",
+    "lint": "eslint *.js",
+    "format": "prettier --write *.js"
+  },
+  "keywords": [
+    "tu-tien",
+    "ai",
+    "chat",
+    "real-time",
+    "websocket",
+    "nodejs"
+  ],
+  "author": "Tu Tien Community",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.2",
+    "cors": "^2.8.5",
+    "axios": "^1.5.0",
+    "dotenv": "^16.3.1",
+    "helmet": "^7.0.0",
+    "compression": "^1.7.4",
+    "morgan": "^1.10.0",
+    "winston": "^3.10.0",
+    "joi": "^17.9.2",
+    "rate-limiter-flexible": "^3.0.8",
+    "redis": "^4.6.7",
+    "ioredis": "^5.3.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1",
+    "jest": "^29.6.2",
+    "supertest": "^6.3.3",
+    "eslint": "^8.47.0",
+    "prettier": "^3.0.2",
+    "@types/node": "^20.5.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/truongnguyena/TienGioiQuanLy.git"
+  },
+  "bugs": {
+    "url": "https://github.com/truongnguyena/TienGioiQuanLy/issues"
+  },
+  "homepage": "https://github.com/truongnguyena/TienGioiQuanLy#readme"
+}

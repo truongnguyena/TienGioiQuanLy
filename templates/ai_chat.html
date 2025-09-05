@@ -1,0 +1,1036 @@
+{% extends "base.html" %}
+
+{% block title %}AI Tu Tiên Chat - Thiên Đạo Cộng Đồng{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-container {
+        height: calc(100vh - 200px);
+        display: flex;
+        flex-direction: column;
+        background: linear-gradient(135deg, var(--dark-bg), var(--darker-bg));
+        border-radius: 15px;
+        overflow: hidden;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+
+    .chat-header {
+        background: linear-gradient(90deg, var(--purple), var(--celestial));
+        padding: 20px;
+        text-align: center;
+        color: white;
+        position: relative;
+    }
+
+    .ai-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(45deg, var(--golden), var(--purple));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        margin-bottom: 10px;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+    }
+
+    .ai-info {
+        margin-top: 10px;
+    }
+
+    .ai-name {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+
+    .ai-level {
+        font-size: 14px;
+        opacity: 0.9;
+    }
+
+    .ai-status {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .status-indicator {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #4CAF50;
+        animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+        0%, 50% { opacity: 1; }
+        51%, 100% { opacity: 0.3; }
+    }
+
+    .chat-messages {
+        flex: 1;
+        padding: 20px;
+        overflow-y: auto;
+        background: rgba(26, 26, 46, 0.5);
+    }
+
+    .message {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .message.user {
+        flex-direction: row-reverse;
+    }
+
+    .message-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .message.user .message-avatar {
+        background: linear-gradient(45deg, var(--celestial), var(--purple));
+        color: white;
+    }
+
+    .message.ai .message-avatar {
+        background: linear-gradient(45deg, var(--golden), var(--purple));
+        color: white;
+    }
+
+    .message-content {
+        max-width: 70%;
+        padding: 15px 20px;
+        border-radius: 20px;
+        position: relative;
+        word-wrap: break-word;
+    }
+
+    .message.user .message-content {
+        background: linear-gradient(135deg, var(--celestial), var(--purple));
+        color: white;
+        border-bottom-right-radius: 5px;
+    }
+
+    .message.ai .message-content {
+        background: linear-gradient(135deg, var(--golden), var(--purple));
+        color: white;
+        border-bottom-left-radius: 5px;
+    }
+
+    .message-meta {
+        font-size: 12px;
+        opacity: 0.7;
+        margin-top: 5px;
+    }
+
+    .ai-special-ability {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        margin-top: 5px;
+        display: inline-block;
+    }
+
+    .typing-indicator {
+        display: none;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+
+    .typing-dots {
+        display: flex;
+        gap: 4px;
+    }
+
+    .typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--golden);
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typing {
+        0%, 60%, 100% { transform: translateY(0); }
+        30% { transform: translateY(-10px); }
+    }
+
+    .chat-input-container {
+        padding: 20px;
+        background: rgba(26, 26, 46, 0.8);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-input-form {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .chat-input {
+        flex: 1;
+        padding: 15px 20px;
+        border: 2px solid rgba(255, 255, 255, 0.1);
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.05);
+        color: white;
+        font-size: 16px;
+        outline: none;
+        transition: all 0.3s ease;
+    }
+
+    .chat-input:focus {
+        border-color: var(--golden);
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    .chat-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .send-button {
+        padding: 15px 25px;
+        background: linear-gradient(45deg, var(--golden), var(--purple));
+        border: none;
+        border-radius: 25px;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .send-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(255, 215, 0, 0.3);
+    }
+
+    .send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    .voice-controls {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .voice-button {
+        padding: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 45px;
+        height: 45px;
+    }
+
+    .voice-button:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: var(--golden);
+    }
+
+    .voice-button.recording {
+        background: #ff4444;
+        border-color: #ff4444;
+        animation: pulse 1s infinite;
+    }
+
+    .ai-personality {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        background: rgba(0, 0, 0, 0.3);
+        padding: 10px 15px;
+        border-radius: 20px;
+        font-size: 12px;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .ai-personality:hover {
+        background: rgba(0, 0, 0, 0.5);
+    }
+
+    .personality-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.8);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .personality-content {
+        background: var(--card-bg);
+        padding: 30px;
+        border-radius: 15px;
+        max-width: 500px;
+        width: 90%;
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+
+    .personality-trait {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+    }
+
+    .trait-name {
+        font-weight: bold;
+        color: var(--golden);
+    }
+
+    .trait-value {
+        color: white;
+        font-size: 18px;
+    }
+
+    .trait-slider {
+        width: 200px;
+        height: 5px;
+        border-radius: 5px;
+        background: rgba(255, 255, 255, 0.2);
+        outline: none;
+        -webkit-appearance: none;
+    }
+
+    .trait-slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--golden);
+        cursor: pointer;
+    }
+
+    .trait-slider::-moz-range-thumb {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--golden);
+        cursor: pointer;
+        border: none;
+    }
+
+    .close-modal {
+        position: absolute;
+        top: 10px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+
+    .ai-abilities {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: 10px;
+    }
+
+    .ability-tag {
+        background: rgba(255, 215, 0, 0.2);
+        color: var(--golden);
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        border: 1px solid var(--golden);
+    }
+
+    .message-actions {
+        display: flex;
+        gap: 5px;
+        margin-top: 10px;
+    }
+
+    .message-action {
+        background: rgba(255, 255, 255, 0.1);
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 15px;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .message-action:hover {
+        background: rgba(255, 255, 255, 0.2);
+    }
+
+    .message-action.voice {
+        color: var(--golden);
+    }
+
+    .message-action.copy {
+        color: var(--celestial);
+    }
+
+    .message-action.like {
+        color: #ff6b6b;
+    }
+
+    .notification {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        color: white;
+        padding: 15px 20px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 1001;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+    }
+
+    .notification.show {
+        transform: translateX(0);
+    }
+
+    .notification.success {
+        border-left: 4px solid #4CAF50;
+    }
+
+    .notification.error {
+        border-left: 4px solid #f44336;
+    }
+
+    .notification.info {
+        border-left: 4px solid var(--celestial);
+    }
+
+    @media (max-width: 768px) {
+        .chat-container {
+            height: calc(100vh - 150px);
+        }
+        
+        .message-content {
+            max-width: 85%;
+        }
+        
+        .chat-input-form {
+            flex-direction: column;
+            gap: 10px;
+        }
+        
+        .voice-controls {
+            width: 100%;
+            justify-content: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="chat-container">
+                <!-- Chat Header -->
+                <div class="chat-header">
+                    <div class="ai-personality" onclick="showPersonalityModal()">
+                        <i class="fas fa-cog"></i> Tính cách AI
+                    </div>
+                    
+                    <div class="ai-avatar">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    
+                    <div class="ai-info">
+                        <div class="ai-name" id="aiName">Linh Nhi</div>
+                        <div class="ai-level" id="aiLevel">Nguyên Anh Tầng 3</div>
+                    </div>
+                    
+                    <div class="ai-status">
+                        <div class="status-indicator"></div>
+                        <span>Đang hoạt động</span>
+                    </div>
+                </div>
+
+                <!-- Chat Messages -->
+                <div class="chat-messages" id="chatMessages">
+                    <div class="message ai">
+                        <div class="message-avatar">
+                            <i class="fas fa-female"></i>
+                        </div>
+                        <div class="message-content">
+                            <div>Chào bạn! Tôi là Linh Nhi, AI tu tiên của bạn! Rất vui được gặp bạn trong thế giới tu tiên này! ✨</div>
+                            <div class="message-meta">
+                                <span class="ai-special-ability">Đọc tâm ý người khác</span>
+                                <span style="margin-left: 10px;">Vừa xong</span>
+                            </div>
+                            <div class="message-actions">
+                                <button class="message-action voice" onclick="speakMessage(this)">
+                                    <i class="fas fa-volume-up"></i> Đọc
+                                </button>
+                                <button class="message-action copy" onclick="copyMessage(this)">
+                                    <i class="fas fa-copy"></i> Sao chép
+                                </button>
+                                <button class="message-action like" onclick="likeMessage(this)">
+                                    <i class="fas fa-heart"></i> Thích
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Typing Indicator -->
+                <div class="typing-indicator" id="typingIndicator">
+                    <div class="message-avatar">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <div>
+                        <div>Linh Nhi đang suy nghĩ</div>
+                        <div class="typing-dots">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chat Input -->
+                <div class="chat-input-container">
+                    <form class="chat-input-form" id="chatForm">
+                        <input type="text" class="chat-input" id="messageInput" 
+                               placeholder="Nhập tin nhắn cho Linh Nhi..." autocomplete="off">
+                        <div class="voice-controls">
+                            <button type="button" class="voice-button" id="voiceButton" onclick="toggleVoiceRecording()">
+                                <i class="fas fa-microphone"></i>
+                            </button>
+                            <button type="button" class="voice-button" onclick="clearChat()">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                        <button type="submit" class="send-button" id="sendButton">
+                            <i class="fas fa-paper-plane"></i>
+                            Gửi
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Personality Modal -->
+<div class="personality-modal" id="personalityModal">
+    <div class="personality-content">
+        <button class="close-modal" onclick="hidePersonalityModal()">&times;</button>
+        <h3 class="text-golden mb-4">
+            <i class="fas fa-female me-2"></i>Tính cách AI Tu Tiên
+        </h3>
+        
+        <div class="personality-trait">
+            <div>
+                <div class="trait-name">Lòng tốt</div>
+                <div class="trait-value" id="kindnessValue">95</div>
+            </div>
+            <input type="range" class="trait-slider" id="kindnessSlider" min="0" max="100" value="95">
+        </div>
+        
+        <div class="personality-trait">
+            <div>
+                <div class="trait-name">Trí tuệ</div>
+                <div class="trait-value" id="wisdomValue">88</div>
+            </div>
+            <input type="range" class="trait-slider" id="wisdomSlider" min="0" max="100" value="88">
+        </div>
+        
+        <div class="personality-trait">
+            <div>
+                <div class="trait-name">Vui tươi</div>
+                <div class="trait-value" id="playfulnessValue">75</div>
+            </div>
+            <input type="range" class="trait-slider" id="playfulnessSlider" min="0" max="100" value="75">
+        </div>
+        
+        <div class="personality-trait">
+            <div>
+                <div class="trait-name">Bí ẩn</div>
+                <div class="trait-value" id="mysteriousnessValue">80</div>
+            </div>
+            <input type="range" class="trait-slider" id="mysteriousnessSlider" min="0" max="100" value="80">
+        </div>
+        
+        <div class="personality-trait">
+            <div>
+                <div class="trait-name">Hữu ích</div>
+                <div class="trait-value" id="helpfulnessValue">92</div>
+            </div>
+            <input type="range" class="trait-slider" id="helpfulnessSlider" min="0" max="100" value="92">
+        </div>
+        
+        <div class="mt-4">
+            <h5 class="text-celestial">Khả năng đặc biệt:</h5>
+            <div class="ai-abilities" id="aiAbilities">
+                <span class="ability-tag">Đọc tâm ý người khác</span>
+                <span class="ability-tag">Dự đoán tương lai</span>
+                <span class="ability-tag">Chữa lành tâm hồn</span>
+                <span class="ability-tag">Truyền đạt kiến thức tu luyện</span>
+                <span class="ability-tag">Kết nối với thiên nhiên</span>
+            </div>
+        </div>
+        
+        <div class="mt-4 text-center">
+            <button class="btn btn-primary" onclick="savePersonality()">
+                <i class="fas fa-save me-2"></i>Lưu thay đổi
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Notification -->
+<div class="notification" id="notification"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class TuTienAIChat {
+    constructor() {
+        this.socket = null;
+        this.isRecording = false;
+        this.recognition = null;
+        this.currentPersonality = {
+            kindness: 95,
+            wisdom: 88,
+            playfulness: 75,
+            mysteriousness: 80,
+            helpfulness: 92
+        };
+        this.init();
+    }
+
+    init() {
+        this.setupSocket();
+        this.setupEventListeners();
+        this.setupVoiceRecognition();
+        this.loadPersonality();
+    }
+
+    setupSocket() {
+        // Connect to Node.js chat server
+        this.socket = io('http://localhost:3000');
+        
+        this.socket.on('connect', () => {
+            console.log('Connected to chat server');
+            this.showNotification('Đã kết nối với AI Tu Tiên!', 'success');
+        });
+
+        this.socket.on('disconnect', () => {
+            console.log('Disconnected from chat server');
+            this.showNotification('Mất kết nối với AI Tu Tiên!', 'error');
+        });
+
+        this.socket.on('ai_message', (data) => {
+            this.addAIMessage(data);
+        });
+
+        this.socket.on('ai_status', (data) => {
+            this.updateAIStatus(data);
+        });
+
+        this.socket.on('ai_personality_updated', (data) => {
+            this.updatePersonalityDisplay(data.personality);
+        });
+    }
+
+    setupEventListeners() {
+        const chatForm = document.getElementById('chatForm');
+        const messageInput = document.getElementById('messageInput');
+
+        chatForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            this.sendMessage();
+        });
+
+        messageInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                this.sendMessage();
+            }
+        });
+
+        // Personality sliders
+        const sliders = document.querySelectorAll('.trait-slider');
+        sliders.forEach(slider => {
+            slider.addEventListener('input', (e) => {
+                const value = e.target.value;
+                const traitName = e.target.id.replace('Slider', '');
+                document.getElementById(traitName + 'Value').textContent = value;
+            });
+        });
+    }
+
+    setupVoiceRecognition() {
+        if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            this.recognition = new SpeechRecognition();
+            this.recognition.continuous = false;
+            this.recognition.interimResults = false;
+            this.recognition.lang = 'vi-VN';
+
+            this.recognition.onresult = (event) => {
+                const transcript = event.results[0][0].transcript;
+                document.getElementById('messageInput').value = transcript;
+                this.sendMessage();
+            };
+
+            this.recognition.onerror = (event) => {
+                console.error('Speech recognition error:', event.error);
+                this.showNotification('Lỗi nhận diện giọng nói!', 'error');
+            };
+        }
+    }
+
+    sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+
+        if (!message) return;
+
+        // Add user message to chat
+        this.addUserMessage(message);
+
+        // Clear input
+        messageInput.value = '';
+
+        // Show typing indicator
+        this.showTypingIndicator();
+
+        // Send to server
+        if (this.socket) {
+            this.socket.emit('send_message', {
+                message: message,
+                context: {
+                    username: '{{ current_user.username if current_user.is_authenticated else "Khách" }}',
+                    cultivationLevel: '{{ current_user.cultivation_level if current_user.is_authenticated else "Luyện Khí Tầng 1" }}'
+                }
+            });
+        } else {
+            // Fallback to direct API call
+            this.callAIAPI(message);
+        }
+    }
+
+    async callAIAPI(message) {
+        try {
+            const response = await fetch('/api/ai/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    context: {
+                        username: '{{ current_user.username if current_user.is_authenticated else "Khách" }}',
+                        cultivationLevel: '{{ current_user.cultivation_level if current_user.is_authenticated else "Luyện Khí Tầng 1" }}'
+                    }
+                })
+            });
+
+            const data = await response.json();
+            this.hideTypingIndicator();
+            this.addAIMessage(data);
+        } catch (error) {
+            console.error('Error calling AI API:', error);
+            this.hideTypingIndicator();
+            this.addAIMessage({
+                text: 'Xin lỗi! Tôi đang gặp chút khó khăn. Hãy thử lại sau nhé! 😅',
+                ai_name: 'Linh Nhi',
+                mood: 'confused',
+                cultivation_level: 'Nguyên Anh Tầng 3',
+                special_ability: 'Đọc tâm ý người khác'
+            });
+        }
+    }
+
+    addUserMessage(message) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message user';
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <div class="message-content">
+                <div>${this.escapeHtml(message)}</div>
+                <div class="message-meta">Vừa xong</div>
+                <div class="message-actions">
+                    <button class="message-action copy" onclick="copyMessage(this)">
+                        <i class="fas fa-copy"></i> Sao chép
+                    </button>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        this.scrollToBottom();
+    }
+
+    addAIMessage(data) {
+        const chatMessages = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'message ai';
+        messageDiv.innerHTML = `
+            <div class="message-avatar">
+                <i class="fas fa-female"></i>
+            </div>
+            <div class="message-content">
+                <div>${this.escapeHtml(data.text)}</div>
+                <div class="message-meta">
+                    <span class="ai-special-ability">${data.special_ability || 'Đọc tâm ý người khác'}</span>
+                    <span style="margin-left: 10px;">Vừa xong</span>
+                </div>
+                <div class="message-actions">
+                    <button class="message-action voice" onclick="speakMessage(this)">
+                        <i class="fas fa-volume-up"></i> Đọc
+                    </button>
+                    <button class="message-action copy" onclick="copyMessage(this)">
+                        <i class="fas fa-copy"></i> Sao chép
+                    </button>
+                    <button class="message-action like" onclick="likeMessage(this)">
+                        <i class="fas fa-heart"></i> Thích
+                    </button>
+                </div>
+            </div>
+        `;
+        chatMessages.appendChild(messageDiv);
+        this.scrollToBottom();
+    }
+
+    showTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'flex';
+        this.scrollToBottom();
+    }
+
+    hideTypingIndicator() {
+        document.getElementById('typingIndicator').style.display = 'none';
+    }
+
+    scrollToBottom() {
+        const chatMessages = document.getElementById('chatMessages');
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    toggleVoiceRecording() {
+        if (!this.recognition) {
+            this.showNotification('Trình duyệt không hỗ trợ nhận diện giọng nói!', 'error');
+            return;
+        }
+
+        const voiceButton = document.getElementById('voiceButton');
+        
+        if (this.isRecording) {
+            this.recognition.stop();
+            voiceButton.classList.remove('recording');
+            voiceButton.innerHTML = '<i class="fas fa-microphone"></i>';
+            this.isRecording = false;
+        } else {
+            this.recognition.start();
+            voiceButton.classList.add('recording');
+            voiceButton.innerHTML = '<i class="fas fa-stop"></i>';
+            this.isRecording = true;
+        }
+    }
+
+    clearChat() {
+        if (confirm('Bạn có chắc muốn xóa toàn bộ cuộc trò chuyện?')) {
+            const chatMessages = document.getElementById('chatMessages');
+            chatMessages.innerHTML = `
+                <div class="message ai">
+                    <div class="message-avatar">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <div class="message-content">
+                        <div>Cuộc trò chuyện đã được xóa! Tôi sẵn sàng trò chuyện với bạn! ✨</div>
+                        <div class="message-meta">
+                            <span class="ai-special-ability">Đọc tâm ý người khác</span>
+                            <span style="margin-left: 10px;">Vừa xong</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+            this.showNotification('Đã xóa cuộc trò chuyện!', 'info');
+        }
+    }
+
+    showPersonalityModal() {
+        document.getElementById('personalityModal').style.display = 'flex';
+    }
+
+    hidePersonalityModal() {
+        document.getElementById('personalityModal').style.display = 'none';
+    }
+
+    savePersonality() {
+        const personality = {
+            kindness: parseInt(document.getElementById('kindnessSlider').value),
+            wisdom: parseInt(document.getElementById('wisdomSlider').value),
+            playfulness: parseInt(document.getElementById('playfulnessSlider').value),
+            mysteriousness: parseInt(document.getElementById('mysteriousnessSlider').value),
+            helpfulness: parseInt(document.getElementById('helpfulnessSlider').value)
+        };
+
+        // Update local personality
+        this.currentPersonality = personality;
+
+        // Send to server
+        if (this.socket) {
+            this.socket.emit('update_personality', personality);
+        }
+
+        this.showNotification('Đã cập nhật tính cách AI!', 'success');
+        this.hidePersonalityModal();
+    }
+
+    loadPersonality() {
+        // Load personality from server or use default
+        Object.keys(this.currentPersonality).forEach(trait => {
+            const slider = document.getElementById(trait + 'Slider');
+            const value = document.getElementById(trait + 'Value');
+            if (slider && value) {
+                slider.value = this.currentPersonality[trait];
+                value.textContent = this.currentPersonality[trait];
+            }
+        });
+    }
+
+    updateAIStatus(data) {
+        document.getElementById('aiName').textContent = data.ai.name;
+        document.getElementById('aiLevel').textContent = data.ai.cultivationLevel;
+    }
+
+    updatePersonalityDisplay(personality) {
+        this.currentPersonality = personality;
+        this.loadPersonality();
+    }
+
+    showNotification(message, type = 'info') {
+        const notification = document.getElementById('notification');
+        notification.textContent = message;
+        notification.className = `notification ${type}`;
+        notification.classList.add('show');
+
+        setTimeout(() => {
+            notification.classList.remove('show');
+        }, 3000);
+    }
+
+    escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+}
+
+// Global functions
+function speakMessage(button) {
+    const messageContent = button.closest('.message-content').querySelector('div').textContent;
+    
+    if ('speechSynthesis' in window) {
+        const utterance = new SpeechSynthesisUtterance(messageContent);
+        utterance.lang = 'vi-VN';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.1;
+        speechSynthesis.speak(utterance);
+    } else {
+        chat.showNotification('Trình duyệt không hỗ trợ đọc văn bản!', 'error');
+    }
+}
+
+function copyMessage(button) {
+    const messageContent = button.closest('.message-content').querySelector('div').textContent;
+    navigator.clipboard.writeText(messageContent).then(() => {
+        chat.showNotification('Đã sao chép tin nhắn!', 'success');
+    });
+}
+
+function likeMessage(button) {
+    button.classList.toggle('liked');
+    if (button.classList.contains('liked')) {
+        button.innerHTML = '<i class="fas fa-heart"></i> Đã thích';
+        chat.showNotification('Cảm ơn bạn đã thích tin nhắn!', 'success');
+    } else {
+        button.innerHTML = '<i class="fas fa-heart"></i> Thích';
+    }
+}
+
+function toggleVoiceRecording() {
+    chat.toggleVoiceRecording();
+}
+
+function clearChat() {
+    chat.clearChat();
+}
+
+function showPersonalityModal() {
+    chat.showPersonalityModal();
+}
+
+function hidePersonalityModal() {
+    chat.hidePersonalityModal();
+}
+
+function savePersonality() {
+    chat.savePersonality();
+}
+
+// Initialize chat when page loads
+let chat;
+document.addEventListener('DOMContentLoaded', () => {
+    chat = new TuTienAIChat();
+});
+</script>
+
+<!-- Socket.IO -->
+<script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+{% endblock %}
