@@ -1,368 +1,239 @@
-// Enhanced UI Management System
+// Enhanced UI JavaScript for Tu Tien Community
 class EnhancedUI {
     constructor() {
-        this.loadingElements = new Set();
-        this.notificationQueue = [];
         this.init();
     }
 
     init() {
-        this.setupGlobalErrorHandling();
+        this.setupScrollEffects();
+        this.setupSocialLinks();
+        this.setupAnimations();
+        this.setupMobileOptimizations();
         this.setupLoadingStates();
-        this.setupNotifications();
-        this.setupFormValidation();
-        this.setupResponsiveFeatures();
     }
 
-    // Global Error Handling
-    setupGlobalErrorHandling() {
-        window.addEventListener('error', (event) => {
-            console.error('Global error:', event.error);
-            this.showNotification('Đã xảy ra lỗi không mong muốn', 'error');
-        });
-
-        window.addEventListener('unhandledrejection', (event) => {
-            console.error('Unhandled promise rejection:', event.reason);
-            this.showNotification('Lỗi kết nối mạng', 'error');
-        });
-    }
-
-    // Loading States Management
-    setupLoadingStates() {
-        // Intercept fetch requests to show loading
-        const originalFetch = window.fetch;
-        window.fetch = async (...args) => {
-            const url = args[0];
-            if (typeof url === 'string' && url.startsWith('/')) {
-                this.showLoading();
-            }
-            
-            try {
-                const response = await originalFetch(...args);
-                this.hideLoading();
-                return response;
-            } catch (error) {
-                this.hideLoading();
-                throw error;
-            }
-        };
-    }
-
-    showLoading(element = null) {
-        if (element) {
-            element.classList.add('loading');
-            this.loadingElements.add(element);
-        } else {
-            document.body.classList.add('loading');
-        }
-    }
-
-    hideLoading(element = null) {
-        if (element) {
-            element.classList.remove('loading');
-            this.loadingElements.delete(element);
-        } else {
-            document.body.classList.remove('loading');
-        }
-    }
-
-    // Notification System
-    setupNotifications() {
-        // Create notification container
-        if (!document.getElementById('notification-container')) {
-            const container = document.createElement('div');
-            container.id = 'notification-container';
-            container.className = 'notification-container';
-            container.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-                max-width: 400px;
-            `;
-            document.body.appendChild(container);
-        }
-    }
-
-    showNotification(message, type = 'info', duration = 5000) {
-        const container = document.getElementById('notification-container');
-        const notification = document.createElement('div');
-        
-        const typeClasses = {
-            'success': 'success-message',
-            'error': 'error-message',
-            'warning': 'warning-message',
-            'info': 'info-message'
-        };
-
-        notification.className = `notification ${typeClasses[type] || 'info-message'}`;
-        notification.style.cssText = `
-            margin-bottom: 10px;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-            animation: slideInRight 0.3s ease-out;
-            position: relative;
-        `;
-
-        notification.innerHTML = `
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-                <span>${message}</span>
-                <button onclick="this.parentElement.parentElement.remove()" 
-                        style="background: none; border: none; color: inherit; cursor: pointer; font-size: 18px;">
-                    ×
-                </button>
-            </div>
-        `;
-
-        container.appendChild(notification);
-
-        // Auto remove after duration
-        setTimeout(() => {
-            if (notification.parentElement) {
-                notification.style.animation = 'slideOutRight 0.3s ease-in';
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, duration);
-    }
-
-    // Form Validation
-    setupFormValidation() {
-        const forms = document.querySelectorAll('form');
-        forms.forEach(form => {
-            form.addEventListener('submit', (e) => {
-                if (!this.validateForm(form)) {
-                    e.preventDefault();
+    setupScrollEffects() {
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
                 }
+            });
+        });
+
+        // Parallax effect for hero section
+        window.addEventListener('scroll', () => {
+            const scrolled = window.pageYOffset;
+            const heroSection = document.querySelector('.hero-section');
+            if (heroSection) {
+                heroSection.style.transform = `translateY(${scrolled * 0.5}px)`;
+            }
+        });
+    }
+
+    setupSocialLinks() {
+        // Add click tracking for social links
+        document.querySelectorAll('.social-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                const platform = link.querySelector('i').className;
+                console.log(`Social link clicked: ${platform}`);
+                
+                // Add visual feedback
+                link.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    link.style.transform = '';
+                }, 150);
             });
         });
     }
 
-    validateForm(form) {
-        const inputs = form.querySelectorAll('input[required], select[required], textarea[required]');
-        let isValid = true;
+    setupAnimations() {
+        // Intersection Observer for fade-in animations
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
 
-        inputs.forEach(input => {
-            if (!input.value.trim()) {
-                this.showFieldError(input, 'Trường này là bắt buộc');
-                isValid = false;
-            } else {
-                this.clearFieldError(input);
-            }
-
-            // Email validation
-            if (input.type === 'email' && input.value) {
-                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(input.value)) {
-                    this.showFieldError(input, 'Email không hợp lệ');
-                    isValid = false;
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('animate-fade-in');
                 }
-            }
+            });
+        }, observerOptions);
 
-            // Password validation
-            if (input.type === 'password' && input.value) {
-                if (input.value.length < 6) {
-                    this.showFieldError(input, 'Mật khẩu phải có ít nhất 6 ký tự');
-                    isValid = false;
-                }
-            }
+        // Observe all feature cards and stats
+        document.querySelectorAll('.feature-card, .stat-item, .mystical-card').forEach(el => {
+            observer.observe(el);
+        });
+    }
+
+    setupMobileOptimizations() {
+        // Touch-friendly interactions
+        document.querySelectorAll('.btn, .nav-link').forEach(element => {
+            element.addEventListener('touchstart', function() {
+                this.classList.add('touch-active');
+            });
+            
+            element.addEventListener('touchend', function() {
+                setTimeout(() => {
+                    this.classList.remove('touch-active');
+                }, 150);
+            });
         });
 
-        return isValid;
-    }
-
-    showFieldError(input, message) {
-        input.classList.add('is-invalid');
-        
-        let errorElement = input.parentElement.querySelector('.invalid-feedback');
-        if (!errorElement) {
-            errorElement = document.createElement('div');
-            errorElement.className = 'invalid-feedback';
-            input.parentElement.appendChild(errorElement);
-        }
-        errorElement.textContent = message;
-    }
-
-    clearFieldError(input) {
-        input.classList.remove('is-invalid');
-        const errorElement = input.parentElement.querySelector('.invalid-feedback');
-        if (errorElement) {
-            errorElement.remove();
-        }
-    }
-
-    // Responsive Features
-    setupResponsiveFeatures() {
-        // Mobile menu toggle
-        const mobileMenuToggle = document.getElementById('mobile-menu-toggle');
-        const mobileMenu = document.getElementById('mobile-menu');
-        
-        if (mobileMenuToggle && mobileMenu) {
+        // Mobile menu enhancements
+        const mobileMenuToggle = document.querySelector('[data-bs-toggle="offcanvas"]');
+        if (mobileMenuToggle) {
             mobileMenuToggle.addEventListener('click', () => {
-                mobileMenu.classList.toggle('show');
+                document.body.classList.toggle('menu-open');
             });
         }
 
-        // Touch gestures for mobile
-        this.setupTouchGestures();
-    }
-
-    setupTouchGestures() {
-        let startY = 0;
-        let startX = 0;
-
-        document.addEventListener('touchstart', (e) => {
-            startY = e.touches[0].clientY;
-            startX = e.touches[0].clientX;
-        });
-
-        document.addEventListener('touchmove', (e) => {
-            if (!startY || !startX) return;
-
-            const currentY = e.touches[0].clientY;
-            const currentX = e.touches[0].clientX;
-            const diffY = startY - currentY;
-            const diffX = startX - currentX;
-
-            // Swipe up to refresh
-            if (Math.abs(diffY) > Math.abs(diffX) && diffY > 50) {
-                this.handleSwipeUp();
+        // Close mobile menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const sidebar = document.querySelector('.mystical-sidebar');
+            const toggle = document.querySelector('[data-bs-toggle="offcanvas"]');
+            
+            if (sidebar && !sidebar.contains(e.target) && !toggle.contains(e.target)) {
+                if (sidebar.classList.contains('show')) {
+                    const bsOffcanvas = bootstrap.Offcanvas.getInstance(sidebar);
+                    if (bsOffcanvas) {
+                        bsOffcanvas.hide();
+                    }
+                }
             }
         });
     }
 
-    handleSwipeUp() {
-        // Refresh page on swipe up
-        if (window.location.pathname === '/') {
-            window.location.reload();
-        }
+    setupLoadingStates() {
+        // Add loading states to forms
+        document.querySelectorAll('form').forEach(form => {
+            form.addEventListener('submit', function() {
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.classList.add('loading');
+                    submitBtn.disabled = true;
+                }
+            });
+        });
+
+        // Add loading states to links that might take time
+        document.querySelectorAll('a[href*="dashboard"], a[href*="mining"]').forEach(link => {
+            link.addEventListener('click', function() {
+                this.classList.add('loading');
+            });
+        });
     }
 
-    // Utility Methods
-    debounce(func, wait) {
-        let timeout;
-        return function executedFunction(...args) {
-            const later = () => {
-                clearTimeout(timeout);
-                func(...args);
-            };
-            clearTimeout(timeout);
-            timeout = setTimeout(later, wait);
-        };
-    }
-
-    throttle(func, limit) {
-        let inThrottle;
-        return function() {
-            const args = arguments;
-            const context = this;
-            if (!inThrottle) {
-                func.apply(context, args);
-                inThrottle = true;
-                setTimeout(() => inThrottle = false, limit);
+    // Utility method to show notifications
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${type} alert-dismissible fade show position-fixed`;
+        notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+        notification.innerHTML = `
+            <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(notification);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
             }
-        };
+        }, 5000);
     }
 
-    // Animation helpers
-    fadeIn(element, duration = 300) {
-        element.style.opacity = '0';
-        element.style.display = 'block';
-        
-        let start = performance.now();
-        
-        function animate(currentTime) {
-            const elapsed = currentTime - start;
-            const progress = Math.min(elapsed / duration, 1);
+    // Method to enhance cards with hover effects
+    enhanceCards() {
+        document.querySelectorAll('.mystical-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+            });
             
-            element.style.opacity = progress;
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
-        }
-        
-        requestAnimationFrame(animate);
-    }
-
-    fadeOut(element, duration = 300) {
-        let start = performance.now();
-        const initialOpacity = parseFloat(getComputedStyle(element).opacity);
-        
-        function animate(currentTime) {
-            const elapsed = currentTime - start;
-            const progress = Math.min(elapsed / duration, 1);
-            
-            element.style.opacity = initialOpacity * (1 - progress);
-            
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            } else {
-                element.style.display = 'none';
-            }
-        }
-        
-        requestAnimationFrame(animate);
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+            });
+        });
     }
 }
 
-// Initialize Enhanced UI
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    window.enhancedUI = new EnhancedUI();
+    new EnhancedUI();
 });
 
-// Add CSS animations
+// Add CSS for animations
 const style = document.createElement('style');
 style.textContent = `
-    @keyframes slideInRight {
+    .animate-fade-in {
+        animation: fadeInUp 0.6s ease-out forwards;
+    }
+    
+    @keyframes fadeInUp {
         from {
-            transform: translateX(100%);
             opacity: 0;
+            transform: translateY(30px);
         }
         to {
-            transform: translateX(0);
             opacity: 1;
+            transform: translateY(0);
         }
     }
     
-    @keyframes slideOutRight {
-        from {
-            transform: translateX(0);
-            opacity: 1;
-        }
-        to {
-            transform: translateX(100%);
-            opacity: 0;
-        }
+    .touch-active {
+        transform: scale(0.95);
+        opacity: 0.8;
     }
     
-    .is-invalid {
-        border-color: #dc3545 !important;
+    .menu-open {
+        overflow: hidden;
     }
     
-    .invalid-feedback {
-        display: block;
-        color: #dc3545;
-        font-size: 0.875rem;
-        margin-top: 0.25rem;
+    .mystical-card {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    .warning-message {
-        background: rgba(255, 193, 7, 0.1);
-        border: 1px solid rgba(255, 193, 7, 0.3);
-        color: #ffc107;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin: 10px 0;
+    .social-link {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     }
     
-    .info-message {
-        background: rgba(13, 202, 240, 0.1);
-        border: 1px solid rgba(13, 202, 240, 0.3);
-        color: #0dcaf0;
-        padding: 10px 15px;
-        border-radius: 8px;
-        margin: 10px 0;
+    .btn-mystical {
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .loading {
+        position: relative;
+        pointer-events: none;
+        opacity: 0.7;
+    }
+    
+    .loading::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 20px;
+        height: 20px;
+        margin: -10px 0 0 -10px;
+        border: 2px solid #ffd700;
+        border-top: 2px solid transparent;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
     }
 `;
 document.head.appendChild(style);
