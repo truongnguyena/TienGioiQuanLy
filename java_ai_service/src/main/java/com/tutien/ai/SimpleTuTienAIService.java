@@ -1,92 +1,75 @@
 package com.tutien.ai;
 
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
-import org.springframework.http.HttpStatus;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ThreadLocalRandom;
 
-@SpringBootApplication
-@RestController
-@RequestMapping("/api/ai")
-@CrossOrigin(origins = "*")
-public class TuTienAIService {
+public class SimpleTuTienAIService {
     
-    private final ObjectMapper objectMapper = new ObjectMapper();
     private final TuTienAIPersonality aiPersonality;
     private final List<ChatMemory> chatMemories = new ArrayList<>();
     
-    public TuTienAIService() {
+    public SimpleTuTienAIService() {
         this.aiPersonality = new TuTienAIPersonality();
     }
     
     public static void main(String[] args) {
-        SpringApplication.run(TuTienAIService.class, args);
+        SimpleTuTienAIService service = new SimpleTuTienAIService();
+        System.out.println("Java AI Service started successfully!");
+        System.out.println("AI Name: " + service.aiPersonality.getName());
+        System.out.println("Cultivation Level: " + service.aiPersonality.getCultivationLevel());
     }
     
-    @GetMapping("/health")
-    public ResponseEntity<Map<String, Object>> health() {
+    public Map<String, Object> health() {
         Map<String, Object> response = new HashMap<>();
         response.put("status", "healthy");
         response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
         response.put("service", "Java AI Service");
         response.put("ai_name", aiPersonality.getName());
         response.put("cultivation_level", aiPersonality.getCultivationLevel());
-        return ResponseEntity.ok(response);
+        return response;
     }
     
-    @PostMapping("/chat")
-    public ResponseEntity<AIResponse> chat(@RequestBody ChatRequest request) {
+    public AIResponse chat(String message, Map<String, Object> context) {
         try {
-            AIResponse response = processMessage(request.getMessage(), request.getContext());
-            return ResponseEntity.ok(response);
+            return processMessage(message, context);
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(createErrorResponse("Failed to process message: " + e.getMessage()));
+            return createErrorResponse("Failed to process message: " + e.getMessage());
         }
     }
     
-    @GetMapping("/personality")
-    public ResponseEntity<TuTienAIPersonality> getPersonality() {
-        return ResponseEntity.ok(aiPersonality);
+    public TuTienAIPersonality getPersonality() {
+        return aiPersonality;
     }
     
-    @PostMapping("/personality")
-    public ResponseEntity<Map<String, Object>> updatePersonality(@RequestBody Map<String, Object> updates) {
+    public Map<String, Object> updatePersonality(Map<String, Object> updates) {
         try {
             aiPersonality.updatePersonality(updates);
             Map<String, Object> response = new HashMap<>();
             response.put("success", true);
             response.put("personality", aiPersonality);
             response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-            return ResponseEntity.ok(response);
+            return response;
         } catch (Exception e) {
             Map<String, Object> response = new HashMap<>();
             response.put("success", false);
             response.put("error", e.getMessage());
-            return ResponseEntity.badRequest().body(response);
+            return response;
         }
     }
     
-    @GetMapping("/memories")
-    public ResponseEntity<List<ChatMemory>> getMemories() {
-        return ResponseEntity.ok(chatMemories);
+    public List<ChatMemory> getMemories() {
+        return new ArrayList<>(chatMemories);
     }
     
-    @PostMapping("/memories/clear")
-    public ResponseEntity<Map<String, Object>> clearMemories() {
+    public Map<String, Object> clearMemories() {
         chatMemories.clear();
         Map<String, Object> response = new HashMap<>();
         response.put("success", true);
         response.put("message", "Memories cleared");
         response.put("timestamp", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE_TIME));
-        return ResponseEntity.ok(response);
+        return response;
     }
     
     private AIResponse processMessage(String message, Map<String, Object> context) {
@@ -287,46 +270,15 @@ public class TuTienAIService {
     }
     
     // Inner classes for data structures
-    public static class ChatRequest {
-        @JsonProperty("message")
-        private String message;
-        
-        @JsonProperty("context")
-        private Map<String, Object> context;
-        
-        // Getters and setters
-        public String getMessage() { return message; }
-        public void setMessage(String message) { this.message = message; }
-        public Map<String, Object> getContext() { return context; }
-        public void setContext(Map<String, Object> context) { this.context = context; }
-    }
-    
     public static class AIResponse {
-        @JsonProperty("text")
         private String text;
-        
-        @JsonProperty("type")
         private String type;
-        
-        @JsonProperty("mood")
         private String mood;
-        
-        @JsonProperty("cultivation_level")
         private String cultivationLevel;
-        
-        @JsonProperty("special_ability")
         private String specialAbility;
-        
-        @JsonProperty("wisdom_level")
         private int wisdomLevel;
-        
-        @JsonProperty("mystery_level")
         private int mysteryLevel;
-        
-        @JsonProperty("timestamp")
         private String timestamp;
-        
-        @JsonProperty("ai_name")
         private String aiName;
         
         // Getters and setters
@@ -348,29 +300,6 @@ public class TuTienAIService {
         public void setTimestamp(String timestamp) { this.timestamp = timestamp; }
         public String getAiName() { return aiName; }
         public void setAiName(String aiName) { this.aiName = aiName; }
-    }
-    
-    public static class MessageAnalysis {
-        private boolean cultivationQuestion;
-        private boolean helpRequest;
-        private boolean emotional;
-        private boolean greeting;
-        private String sentiment;
-        private String urgency;
-        
-        // Getters and setters
-        public boolean isCultivationQuestion() { return cultivationQuestion; }
-        public void setCultivationQuestion(boolean cultivationQuestion) { this.cultivationQuestion = cultivationQuestion; }
-        public boolean isHelpRequest() { return helpRequest; }
-        public void setHelpRequest(boolean helpRequest) { this.helpRequest = helpRequest; }
-        public boolean isEmotional() { return emotional; }
-        public void setEmotional(boolean emotional) { this.emotional = emotional; }
-        public boolean isGreeting() { return greeting; }
-        public void setGreeting(boolean greeting) { this.greeting = greeting; }
-        public String getSentiment() { return sentiment; }
-        public void setSentiment(String sentiment) { this.sentiment = sentiment; }
-        public String getUrgency() { return urgency; }
-        public void setUrgency(String urgency) { this.urgency = urgency; }
     }
     
     public static class ChatMemory {
